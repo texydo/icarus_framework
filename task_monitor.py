@@ -22,9 +22,11 @@ JOB_TYPE_TO_CLASS = {
 
 def monitor_file_and_execute_job(job_numeric_id, file_to_monitor):
     print(f"monitoring file {file_to_monitor}")
+    counter = 0
     while True:
         # Check if the file exists
         if os.path.exists(file_to_monitor):
+            start_time = time.time()
             try:
                 with open(file_to_monitor, 'r') as file:
                     job_type_name = file.read().strip()  # Read job type from file
@@ -46,12 +48,16 @@ def monitor_file_and_execute_job(job_numeric_id, file_to_monitor):
                     del job_object
                     # After execution, delete the job_type file
                     os.remove(file_to_monitor)
-                    print(f"Deleted {file_to_monitor} after successful execution.")
+                    print(f"Completed Job")
                 else:
                     print(f"No valid job class found for job type: {job_type_name} of {job_type_name}")
-
-            # except FileNotFoundError:
-            #     print("The job type file does not exist.")
+                end_time = time.time()
+                print(f"Run time of job {job_type_name} was {end_time-start_time}")
+            
+            except FileNotFoundError:
+                counter += 1
+                if counter % 600 == 0:
+                    print("The job type file does not exist.")
             except Exception as e:
                 print(f"An error occurred: {e}")
 
@@ -65,6 +71,6 @@ if __name__ == "__main__":
         # sys.exit(1)
     
     # Convert the first argument to an integer and use the second as is
-    # job_numeric_id = int(sys.argv[1])
-    # file_to_monitor = sys.argv[2]
+    job_numeric_id = int(sys.argv[1])
+    file_to_monitor = sys.argv[2]
     monitor_file_and_execute_job(job_numeric_id, file_to_monitor)

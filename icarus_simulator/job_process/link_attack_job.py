@@ -3,6 +3,7 @@
 import sys
 import pickle
 
+from typing import List, Tuple, Dict
 from icarus_simulator.job_process.base_job import BaseJob
 from icarus_simulator.phases.link_attack_phase import AttackMultiproc
 from icarus_simulator.structure_definitions import (

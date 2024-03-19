@@ -70,7 +70,7 @@ class EdgePhase(BasePhase):
         ]
 
         job_name = "EdgeJob"
-        process_params=(self.ed_strat,)
+        process_params=self.ed_strat,
         edge_infos: Dict[Edge, TempEdgeInfo] = self.initate_jobs(all_paths, process_params, job_name)
         
         # # Start a multithreaded computation

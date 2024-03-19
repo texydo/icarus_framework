@@ -2,6 +2,8 @@
 
 import sys
 import pickle
+from typing import List, Tuple, Dict
+
 from icarus_simulator.job_process.base_job import BaseJob
 from icarus_simulator.phases.edge_phase import EdgeMultiproc
 from icarus_simulator.structure_definitions import (

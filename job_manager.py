@@ -33,7 +33,7 @@ class JobManager:
         for job_index in range(self.num_jobs):
             job_script_name = self.create_job_script(job_index)
             self.job_scripts.append(job_script_name)
-        # self.submit_jobs()
+        self.submit_jobs()
         self.cleanup()
 
     def submit_jobs(self):
@@ -54,9 +54,9 @@ if __name__ == "__main__":
     env_path = "/home/roeeidan/.conda/envs/icarus/bin/python"
     temp_data_path = "/home/roeeidan/icarus_framework/logs"
     monitor_file_template = "/home/roeeidan/icarus_framework/icarus_simulator/temp_data/run_X.txt"
-    num_jobs = 15
-    cpus_per_job = 16
-    mem = 40
+    num_jobs = 6
+    cpus_per_job = 8
+    mem = 95
 
     manager = JobManager(python_script_path, parent_path, env_path, temp_data_path, monitor_file_template, num_jobs, cpus_per_job, mem)
     manager.create_jobs()
