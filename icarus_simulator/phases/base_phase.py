@@ -13,6 +13,7 @@ For an extension example, see any provided phase class. All files in this direct
 """
 import os
 import time
+import pickle
 
 from abc import abstractmethod
 from typing import List, Any, Tuple
@@ -28,6 +29,8 @@ class BasePhase:
     def __init__(self, read_persist: bool, persist: bool):
         self.read_persist: bool = read_persist
         self.persist: bool = persist
+        self.temp_data_path = "/home/roeeidan/icarus_framework/icarus_simulator/temp_data"
+        self.num_jobs = 10
 
     @property
     def input_properties(self) -> List[Pname]:
@@ -94,3 +97,58 @@ class BasePhase:
         print(f"{self.name} finished in {time.time() - start}")
         print("")
         return result
+    
+    def serialize_data(self, data, file_name):
+        with open(os.path.join(self.temp_data_path, file_name), 'wb') as file:
+            pickle.dump(data, file)
+    
+    def creat_run_file(self, job_index, phase_name):
+        file_name = f"run_{job_index}.txt"
+        file_path = os.path.join(self.temp_data_path, file_name)
+        with open(file_path, 'w') as file:
+            file.write(phase_name)
+
+    def wait_for_jobs_completion(self):
+        """
+        Waits until all output files have been created for all job indices.
+        """
+        print(f"Waiting for all jobs to complete...")
+        all_files_exist = False
+        while not all_files_exist:
+            all_files_exist = True
+            for i in range(self.num_jobs):
+                output_file_path = os.path.join(self.temp_data_path, f"output_{i}.pkl")
+                if not os.path.exists(output_file_path):
+                    all_files_exist = False
+                    break
+            if not all_files_exist:
+                time.sleep(5)  # Wait for 5 seconds before checking again
+        
+        print("All jobs completed.")
+        
+    def aggregate_results(self):
+        aggregated_results = {}
+        for i in range(self.num_jobs):
+            output_path = os.path.join(self.temp_data_path, f"output_{i}.pkl")
+            with open(output_path, 'rb') as file:
+                job_results = pickle.load(file)
+                aggregated_results.update(job_results)
+        return aggregated_results
+
+    def cleanup(self):
+        # Remove all created files in the temp_data_path
+        for filename in os.listdir(self.temp_data_path):
+            file_path = os.path.join(self.temp_data_path, filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+                
+    def initate_jobs(self, data, process_params, phase_name):
+        data_chunks = [data[i::self.num_jobs] for i in range(self.num_jobs)]        
+        self.serialize_data(process_params, f"params.pkl")
+        for i, chunk in enumerate(data_chunks):
+            self.serialize_data(chunk, f"data_{i}.pkl")
+            self.creat_run_file(i, phase_name)
+        self.wait_for_jobs_completion()
+        results = self.aggregate_results()
+        self.cleanup()
+        return results
