@@ -69,11 +69,15 @@ class EdgePhase(BasePhase):
             for list_id, pd in enumerate(pd_list)
         ]
 
-        # Start a multithreaded computation
-        multi = EdgeMultiproc(
-            self.num_procs, self.num_batches, all_paths, process_params=(self.ed_strat,)
-        )
-        edge_infos: Dict[Edge, TempEdgeInfo] = multi.process_batches()
+        job_name = "EdgeJob"
+        process_params=(self.ed_strat,)
+        edge_infos: Dict[Edge, TempEdgeInfo] = self.initate_jobs(all_paths, process_params, job_name)
+        
+        # # Start a multithreaded computation
+        # multi = EdgeMultiproc(
+        #     self.num_procs, self.num_batches, all_paths, process_params=(self.ed_strat,)
+        # )
+        # edge_infos: Dict[Edge, TempEdgeInfo] = multi.process_batches()
 
         # Transform to EdgeInfo and add the missing edges
         all_edges = list(network.edges())

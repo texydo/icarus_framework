@@ -30,7 +30,7 @@ class BasePhase:
         self.read_persist: bool = read_persist
         self.persist: bool = persist
         self.temp_data_path = "/home/roeeidan/icarus_framework/icarus_simulator/temp_data"
-        self.num_jobs = 10
+        self.num_jobs = 20
 
     @property
     def input_properties(self) -> List[Pname]:
@@ -142,12 +142,12 @@ class BasePhase:
             if os.path.isfile(file_path):
                 os.remove(file_path)
                 
-    def initate_jobs(self, data, process_params, phase_name):
+    def initate_jobs(self, data, process_params, job_name):
         data_chunks = [data[i::self.num_jobs] for i in range(self.num_jobs)]        
         self.serialize_data(process_params, f"params.pkl")
         for i, chunk in enumerate(data_chunks):
             self.serialize_data(chunk, f"data_{i}.pkl")
-            self.creat_run_file(i, phase_name)
+            self.creat_run_file(i, job_name)
         self.wait_for_jobs_completion()
         results = self.aggregate_results()
         self.cleanup()

@@ -1,0 +1,8 @@
+# Ignore directories
+logs/
+result_dumps/
+icarus_simulator/temp_data/
+icarus_simulator/data
+
+# Ignore all .pyc files
+*.pyc

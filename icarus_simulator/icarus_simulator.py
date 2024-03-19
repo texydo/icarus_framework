@@ -64,7 +64,7 @@ class IcarusSimulator:
 
     def _get_phase_fname(self, phase_name: str, previous: Set[str]) -> str:
         previous = sorted(list(previous))
-        return self.basedir + "/" + phase_name + "||" + "_".join(previous) + ".pkl.bz2"
+        return self.basedir + "/" + phase_name + "_" + "_".join(previous) + ".pkl.bz2"
 
     def _update_properties(
         self, phase_result: Tuple, output_properties: List[Pname]

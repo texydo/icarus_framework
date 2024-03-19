@@ -16,7 +16,7 @@ from icarus_simulator.structure_definitions import (
     AttackData,
 )
 
-class LineAttackJob(BaseJob):
+class LinkAttackJob(BaseJob):
     def run_multiprocessor(self, data_path, process_params_path, output_path):
         # Deserialize the input data
         with open(data_path, 'rb') as data_file:
@@ -56,5 +56,5 @@ if __name__ == "__main__":
     process_params_file_path = sys.argv[2]
     output_file_path = sys.argv[3]
 
-    job = LineAttackJob()
+    job = LinkAttackJob()
     job.run_multiprocessor(data_file_path, process_params_file_path, output_file_path)

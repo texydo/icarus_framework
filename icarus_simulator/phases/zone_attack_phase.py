@@ -117,28 +117,35 @@ class ZoneAttackPhase(BasePhase):
         allowed_sources = self.geo_constr_strat.compute(grid_pos)
         # Select the centres of the zones to be disconnected
         zone_pairs = self.select_strat.compute(grid_pos)
-        # Start a multithreaded computation
-        multi = ZoneAttackMultiproc(
-            self.num_procs,
-            self.num_batches,
-            zone_pairs,
-            process_params=(
-                self.build_strat,
-                self.edges_strat,
-                self.bneck_strat,
-                self.filter_strat,
-                self.feas_strat,
-                self.optim_strat,
-                grid_pos,
-                path_data,
-                bw_data,
-                edge_data,
-                atk_data,
-                allowed_sources,
-            ),
-            verbose=True,
-        )
-        ret_tuple = (multi.process_batches(),)  # It must be a tuple!
+        
+        job_name = "ZoneAttackData"
+        process_params=(self.build_strat, self.edges_strat,
+                        self.bneck_strat, self.filter_strat,
+                        self.feas_strat, self.optim_strat, grid_pos,
+                        path_data, bw_data, edge_data, atk_data, allowed_sources,)
+        ret_tuple = (self.initate_jobs(zone_pairs, process_params, job_name),)
+        # # Start a multithreaded computation
+        # multi = ZoneAttackMultiproc(
+        #     self.num_procs,
+        #     self.num_batches,
+        #     zone_pairs,
+        #     process_params=(
+        #         self.build_strat,
+        #         self.edges_strat,
+        #         self.bneck_strat,
+        #         self.filter_strat,
+        #         self.feas_strat,
+        #         self.optim_strat,
+        #         grid_pos,
+        #         path_data,
+        #         bw_data,
+        #         edge_data,
+        #         atk_data,
+        #         allowed_sources,
+        #     ),
+        #     verbose=True,
+        # )
+        # ret_tuple = (multi.process_batches(),)  # It must be a tuple!
         return ret_tuple
 
     def _check_result(self, result: Tuple[AttackData]) -> None:

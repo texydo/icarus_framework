@@ -1,23 +1,27 @@
 import sys
+
+
+
 import os
 import time
 from icarus_simulator.job_process.base_job import BaseJob
-from icarus_simulator.job_process.edge_job import EdgeMultiproc
+from icarus_simulator.job_process.edge_job import EdgeJob
 from icarus_simulator.job_process.routing_job import RouteJob
-from icarus_simulator.job_process.link_attack_job import LineAttackJob
+from icarus_simulator.job_process.link_attack_job import LinkAttackJob
 from icarus_simulator.job_process.zone_attack_job import ZoneAttackData
 
 
 # Define a mapping from job type names to the classes
 JOB_TYPE_TO_CLASS = {
     "BaseJob": BaseJob,
-    "EdgeMultiproc": EdgeMultiproc,
+    "EdgeJob": EdgeJob,
     "RouteJob": RouteJob,
-    "LineAttackJob": LineAttackJob,
+    "LinkAttackJob": LinkAttackJob,
     "ZoneAttackData": ZoneAttackData,
 }
 
 def monitor_file_and_execute_job(job_numeric_id, file_to_monitor):
+    print(f"monitoring file {file_to_monitor}")
     while True:
         # Check if the file exists
         if os.path.exists(file_to_monitor):
@@ -26,9 +30,10 @@ def monitor_file_and_execute_job(job_numeric_id, file_to_monitor):
                     job_type_name = file.read().strip()  # Read job type from file
 
                 # Define paths based on numeric ID
-                data_path = f"same/folder/data_{job_numeric_id}.pkl"
-                params_path = "same/folder/params.pkl"
-                output_path = f"same/folder/output_{job_numeric_id}.pkl"
+                file_directory = os.path.dirname(file_to_monitor)
+                data_path = os.path.join(file_directory, f"data_{job_numeric_id}.pkl")
+                params_path = os.path.join(file_directory, "params.pkl")
+                output_path = os.path.join(file_directory, f"output_{job_numeric_id}.pkl")
 
                 # Get the job class from the mapping
                 job_class = JOB_TYPE_TO_CLASS.get(job_type_name)
@@ -36,16 +41,17 @@ def monitor_file_and_execute_job(job_numeric_id, file_to_monitor):
                 if job_class:
                     print(f"Executing job: {job_type_name} with ID: {job_numeric_id}")
                     # Assume all job classes have a method run_multiprocessor
-                    job_class.run_multiprocessor(data_path, params_path, output_path)
-
+                    job_object = job_class()
+                    job_object.run_multiprocessor(data_path, params_path, output_path)
+                    del job_object
                     # After execution, delete the job_type file
                     os.remove(file_to_monitor)
                     print(f"Deleted {file_to_monitor} after successful execution.")
                 else:
                     print(f"No valid job class found for job type: {job_type_name} of {job_type_name}")
 
-            except FileNotFoundError:
-                print("The job type file does not exist.")
+            # except FileNotFoundError:
+            #     print("The job type file does not exist.")
             except Exception as e:
                 print(f"An error occurred: {e}")
 
@@ -53,10 +59,12 @@ def monitor_file_and_execute_job(job_numeric_id, file_to_monitor):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
+        job_numeric_id = 0
+        file_to_monitor = "/home/roeeidan/icarus_framework/icarus_simulator/temp_data/run_0.txt"
         print("Usage: python task_monitor.py <job_numeric_id> <file_to_monitor>")
-        sys.exit(1)
+        # sys.exit(1)
     
     # Convert the first argument to an integer and use the second as is
-    job_numeric_id = int(sys.argv[1])
-    file_to_monitor = sys.argv[2]
+    # job_numeric_id = int(sys.argv[1])
+    # file_to_monitor = sys.argv[2]
     monitor_file_and_execute_job(job_numeric_id, file_to_monitor)
