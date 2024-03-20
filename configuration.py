@@ -54,6 +54,7 @@ CONFIG = {
     "atk_filt": {"strat": [DirectionalFilteringStrat]},
     "atk_feas": {
         "strat": [LPFeasStrat],
+        "beta": [0.1],
     },
     "atk_optim": {"strat": [BinSearchOptimStrat], "rate": [1.0]},
     "zone_select": {"strat": [RandZoneStrat], "samples": [5000]},

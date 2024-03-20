@@ -26,7 +26,7 @@ class JobManager:
             script_file.write(f"#SBATCH --mem={self.mem}G\n")
             script_file.write(f"export PYTHONPATH={self.parent_path}:$PYTHONPATH\n")
             script_file.write(f"{self.env_path} {self.python_script_path} {job_index} {monitor_file}\n")
-        print(monitor_file)
+        # print(monitor_file)
         return job_script_name
 
     def create_jobs(self):
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     env_path = "/home/roeeidan/.conda/envs/icarus/bin/python"
     temp_data_path = "/home/roeeidan/icarus_framework/logs"
     monitor_file_template = "/home/roeeidan/icarus_framework/icarus_simulator/temp_data/run_X.txt"
-    num_jobs = 30
+    num_jobs = 40
     cpus_per_job = 16
     mem = 80
 
