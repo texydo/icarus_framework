@@ -51,7 +51,7 @@ class Multiprocessor:
         # Run one batch at a time
         result_total = {}
         while batch_start < samples_len:
-            print(f"Batch {idx}")
+            print(f"Batch {idx} out of {self.num_batches}", flush=True)
             batch_end = min(batch_start + self.batch_size, samples_len)
             samples_batch = self.samples[batch_start:batch_end]
             batch_start = batch_end

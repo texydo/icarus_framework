@@ -27,7 +27,7 @@ class EdgeJob(BaseJob):
 
         # Deserialize the process parameters
         with open(process_params_path, 'rb') as params_file:
-            ed_strat = pickle.load(params_file)  # Assuming a single strategy object for simplicity
+            (ed_strat,) = pickle.load(params_file)  # Assuming a single strategy object for simplicity
 
         # Instantiate EdgeMultiproc with deserialized data and parameters
         multi = EdgeMultiproc(

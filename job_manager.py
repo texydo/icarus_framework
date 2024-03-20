@@ -54,9 +54,9 @@ if __name__ == "__main__":
     env_path = "/home/roeeidan/.conda/envs/icarus/bin/python"
     temp_data_path = "/home/roeeidan/icarus_framework/logs"
     monitor_file_template = "/home/roeeidan/icarus_framework/icarus_simulator/temp_data/run_X.txt"
-    num_jobs = 6
+    num_jobs = 11
     cpus_per_job = 8
-    mem = 95
+    mem = 65
 
     manager = JobManager(python_script_path, parent_path, env_path, temp_data_path, monitor_file_template, num_jobs, cpus_per_job, mem)
     manager.create_jobs()
