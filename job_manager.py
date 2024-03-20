@@ -22,7 +22,7 @@ class JobManager:
             script_file.write("#!/bin/bash\n")
             script_file.write(f"#SBATCH --job-name=multi_job_{job_index}\n")
             script_file.write(f"#SBATCH --cpus-per-task={self.cpus_per_job}\n")
-            script_file.write(f"#SBATCH --output={os.path.join(self.temp_data_path, f'job_output_{job_index}_%j.txt')}\n")
+            script_file.write(f"#SBATCH --output={os.path.join(self.temp_data_path, f'%j_job_output_{job_index}.txt')}\n")
             script_file.write(f"#SBATCH --mem={self.mem}G\n")
             script_file.write(f"export PYTHONPATH={self.parent_path}:$PYTHONPATH\n")
             script_file.write(f"{self.env_path} {self.python_script_path} {job_index} {monitor_file}\n")
