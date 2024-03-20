@@ -53,6 +53,7 @@ def monitor_file_and_execute_job(job_numeric_id, file_to_monitor):
                     print(f"No valid job class found for job type: {job_type_name} of {job_type_name}", flush=True)
                 end_time = time.time()
                 print(f"Run time of job {job_type_name} was {end_time-start_time}", flush=True)
+                print(f"time start {time.strftime("%H:%M:%S", time.localtime(start_time))} time end {time.strftime("%H:%M:%S", time.localtime(end_time))}", flush=True)
             except FileNotFoundError:
                 counter += 1
                 if counter % 600 == 0:

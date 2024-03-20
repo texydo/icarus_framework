@@ -46,7 +46,7 @@ class JobManager:
     def cleanup(self):
         for script in self.job_scripts:
             os.remove(script)
-        print("Cleaned up job script files.")
+        # print("Cleaned up job script files.")
 
 if __name__ == "__main__":
     python_script_path = "/home/roeeidan/icarus_framework/task_monitor.py"

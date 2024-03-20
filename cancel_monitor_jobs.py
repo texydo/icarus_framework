@@ -31,7 +31,7 @@ def cancel_jobs(job_ids):
             subprocess.check_call(['scancel', job_id])
         except subprocess.CalledProcessError as e:
             print(f"Failed to cancel job {job_id}: {e}")
-    print(f"Cancelled all none state jobs")
+    print(f"Cancelled all none stated jobs")
 
 def main():
     job_name_pattern = "multi_job"
