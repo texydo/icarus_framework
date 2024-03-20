@@ -30,7 +30,7 @@ class BasePhase:
         self.read_persist: bool = read_persist
         self.persist: bool = persist
         self.temp_data_path = "/home/roeeidan/icarus_framework/icarus_simulator/temp_data"
-        self.num_jobs = 11
+        self.num_jobs = 30
 
     @property
     def input_properties(self) -> List[Pname]:
