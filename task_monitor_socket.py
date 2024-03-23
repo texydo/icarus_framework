@@ -87,7 +87,7 @@ def write_ip(port_num, update_ip_file):
     #     portalocker.lock(f, portalocker.LOCK_EX)
     #     f.write(entry)
 
-def get_free_port(job_index, start_port=49152, end_port=65535):
+def get_free_port(job_index, start_port=9980, end_port=65535):
     job_index_str = f"0{job_index}"  # Format job_index as required
     
     for port in range(start_port, end_port + 1):

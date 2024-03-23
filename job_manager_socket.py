@@ -61,7 +61,7 @@ if __name__ == "__main__":
     ip_file = "/home/roeeidan/icarus_framework/ip.txt"
     num_jobs = 20
     cpus_per_job = 16
-    mem = 80
+    mem = 120
 
     manager = JobManager(python_script_path, parent_path, env_path, log_data_path, ip_file, num_jobs, cpus_per_job, mem)
     manager.create_jobs()

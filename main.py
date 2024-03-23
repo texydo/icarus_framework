@@ -26,12 +26,49 @@ from sat_plotter.stat_plot_builder import StatPlotBuilder
 from configuration import CONFIG, parse_config, get_strat
 
 # Change these parameters to match your machine
-CORE_NUMBER = 30
+CORE_NUMBER = 16
 RESULTS_DIR = "result_dumps"
 
+def delete_files_in_directory(directory_path):
+    import os
+    # Check if the directory exists
+    if not os.path.isdir(directory_path):
+        print(f"The directory {directory_path} does not exist.")
+        return
 
+    # Iterate over all files in the directory and remove them
+    for filename in os.listdir(directory_path):
+        file_path = os.path.join(directory_path, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+                print(f"Deleted {file_path}")
+            else:
+                print(f"Skipped {file_path} (Not a file)")
+        except Exception as e:
+            print(f"Failed to delete {file_path}. Reason: {e}")
+            
+def run_jobs():
+    from job_manager import JobManager
+    python_script_path = "/home/roeeidan/icarus_framework/task_monitor.py"
+    parent_path = "/home/roeeidan/icarus_framework"
+    env_path = "/home/roeeidan/.conda/envs/icarus/bin/python"
+    temp_data_path = "/home/roeeidan/icarus_framework/logs"
+    monitor_file_template = "/home/roeeidan/icarus_framework/icarus_simulator/temp_data/run_X.txt"
+    num_jobs = 40
+    cpus_per_job = 16
+    mem = 120
+
+    manager = JobManager(python_script_path, parent_path, env_path, temp_data_path, monitor_file_template, num_jobs, cpus_per_job, mem)
+    manager.create_jobs()  
+               
 def main():
-
+    delete_files_in_directory("/home/roeeidan/icarus_framework/result_dumps")
+    delete_files_in_directory("/home/roeeidan/icarus_framework/icarus_simulator/temp_data")
+    delete_files_in_directory("/home/roeeidan/icarus_framework/logs")
+    from cancel_monitor_jobs import clear_jobs
+    clear_jobs()
+    run_jobs()
     # Optional feature: parse the configuration file
     full_conf = parse_config(CONFIG)
 

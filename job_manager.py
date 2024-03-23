@@ -56,7 +56,7 @@ if __name__ == "__main__":
     monitor_file_template = "/home/roeeidan/icarus_framework/icarus_simulator/temp_data/run_X.txt"
     num_jobs = 40
     cpus_per_job = 16
-    mem = 80
+    mem = 120
 
     manager = JobManager(python_script_path, parent_path, env_path, temp_data_path, monitor_file_template, num_jobs, cpus_per_job, mem)
     manager.create_jobs()

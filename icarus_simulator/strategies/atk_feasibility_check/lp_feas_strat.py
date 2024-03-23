@@ -100,14 +100,31 @@ class LPFeasStrat(BaseFeasStrat):
             for j in direction_edges[e]:
                 numpy_g[curr_row, j] = -1.0
             curr_row += 1
+        import subprocess
 
+        # Command to be executed
+        command = ["gurobi_cl", "-t"]
+
+        # Execute the command
+        # result = subprocess.run(command, capture_output=True, text=True)
+        # if result.returncode == 0:
+        #     print("Command executed successfully.")
+        #     print("Output:\n", result.stdout)
+        # else:
+        #     print("Error in executing command.")
+        #     print("Error output:\n", result.stderr)
         # Prepare Gurobi problem -> we import gurobi here as not everybody may habve it installed!
         import gurobipy as gp
         from gurobipy import GRB
 
         env = gp.Env(empty=True)
         env.setParam("OutputFlag", 0)
-        env.start()
+        while True:
+            try:
+                env.start()
+                break
+            except:
+                print("")
         m = gp.Model("attack", env=env)
         x = m.addMVar(shape=len(directions), lb=0.0, name="x")
         m.setObjective(numpy_c @ x, GRB.MINIMIZE)  # @ is matrix product!

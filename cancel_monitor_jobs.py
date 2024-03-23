@@ -33,7 +33,7 @@ def cancel_jobs(job_ids):
             print(f"Failed to cancel job {job_id}: {e}")
     print(f"Cancelled all none stated jobs")
 
-def main():
+def clear_jobs():
     job_name_pattern = "multi_job"
     # Assuming you want to validate jobs for this user
     valid_user = "roeeidan"
@@ -44,4 +44,4 @@ def main():
         print(f"No matching jobs found for user '{valid_user}'.")
 
 if __name__ == '__main__':
-    main()
+    clear_jobs()
