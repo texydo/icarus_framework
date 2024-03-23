@@ -119,12 +119,24 @@ class LPFeasStrat(BaseFeasStrat):
 
         env = gp.Env(empty=True)
         env.setParam("OutputFlag", 0)
+        # env.start()
+        import time
+        start_time = time.time()
+        counter = 0
         while True:
             try:
                 env.start()
                 break
-            except:
-                print("")
+            except gp.GurobiError as e:
+                print("Gurobi error encountered:", e)
+                counter += 1
+            except Exception as e:
+                print("Other error encountered:", e)
+                counter += 1
+
+        if counter >= 1:
+            print(f"Failed times: {counter}")
+            print(f"Time: {time.time() - start_time}")
         m = gp.Model("attack", env=env)
         x = m.addMVar(shape=len(directions), lb=0.0, name="x")
         m.setObjective(numpy_c @ x, GRB.MINIMIZE)  # @ is matrix product!

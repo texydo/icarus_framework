@@ -42,7 +42,7 @@ def delete_files_in_directory(directory_path):
         try:
             if os.path.isfile(file_path) or os.path.islink(file_path):
                 os.unlink(file_path)
-                print(f"Deleted {file_path}")
+                # print(f"Deleted {file_path}")
             else:
                 print(f"Skipped {file_path} (Not a file)")
         except Exception as e:
@@ -61,14 +61,19 @@ def run_jobs():
 
     manager = JobManager(python_script_path, parent_path, env_path, temp_data_path, monitor_file_template, num_jobs, cpus_per_job, mem)
     manager.create_jobs()  
-               
-def main():
+
+
+def prepare_system():
+    from cancel_monitor_jobs import clear_jobs
+    clear_jobs()
     delete_files_in_directory("/home/roeeidan/icarus_framework/result_dumps")
     delete_files_in_directory("/home/roeeidan/icarus_framework/icarus_simulator/temp_data")
     delete_files_in_directory("/home/roeeidan/icarus_framework/logs")
-    from cancel_monitor_jobs import clear_jobs
-    clear_jobs()
     run_jobs()
+
+
+def main():
+    prepare_system()
     # Optional feature: parse the configuration file
     full_conf = parse_config(CONFIG)
 
