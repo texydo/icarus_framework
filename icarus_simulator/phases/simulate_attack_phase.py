@@ -1,6 +1,6 @@
 #  2020 Tommaso Ciussani and Giacomo Giuliari
 
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 from icarus_simulator.phases.base_phase import BasePhase
 from icarus_simulator.strategies.base_strat import BaseStrat
@@ -10,6 +10,7 @@ from icarus_simulator.strategies.traffic_select_attack_simulation.base_attack_se
 from icarus_simulator.strategies.traffic_assignment_simulation.base_bw_assig_simulation import (
     BaseBwAssignSimulation,
 )
+from icarus_simulator.multiprocessor import Multiprocessor
 from icarus_simulator.structure_definitions import (
     GridPos,
     Pname,
@@ -18,6 +19,7 @@ from icarus_simulator.structure_definitions import (
     EdgeData,
     ZoneAttackData,
     TrafficData,
+    ZoneAttackInfo,
 )
 
 
@@ -60,25 +62,20 @@ class SimulatedAttackTrafficPhase(BasePhase):
         self, path_data: PathData, edge_data: EdgeData, zone_attack_data: ZoneAttackData, traffic_data: TrafficData 
     ) -> Tuple[List[Tuple[TrafficData]]]:
         # TODO make it into jobs
-        result = []
-        counter = 0
+        index = 0
+        samples = []
         for zatk in zone_attack_data.values():
-            if zatk is None:
-                result.append(None)
-                continue
-            atkflowset = zatk.atkflowset
-            chosen_paths = self.select_strat.compute(path_data, atkflowset, traffic_data['paths'])
-            # Assign the paths sequentially
-            bw_data = self.assign_strat.compute(path_data, chosen_paths, edge_data)
-            #TODO extract more data (on the actual paths)
-            result.append({"paths": chosen_paths,"bw_data": bw_data})    
-            counter +=1
-            if counter == 3:
-                break
+            samples.append([zatk,index])
+            index +=1
+        job_name = "AttackTrafficSimulatJob"
+        process_params=(path_data, edge_data, traffic_data, self.select_strat, self.assign_strat)
+        
+        ret_dict = self.initate_jobs(samples, process_params, job_name)
+        result = [ret_dict[i] for i in range(len(ret_dict))]
         return (result,)
 
     def _check_result(self, result: Tuple[TrafficData]) -> None:
-        for data in result:
+        for data in result[0]:
             if data is None:
                 continue
             bw_data = data['bw_data']
@@ -86,3 +83,21 @@ class SimulatedAttackTrafficPhase(BasePhase):
         for bd in bw_data.values():
             assert bd.idle_bw <= bd.capacity
         return
+    
+class AttackTrafficSimulateMultiproc(Multiprocessor):
+    def _single_sample_process(
+        self, sample: List, process_result: Dict, params: Tuple
+    ) -> None:
+        zatk: ZoneAttackInfo
+        select_strat: BaseAttackSelectSimulation
+        assign_strat: BaseBwAssignSimulation
+        zatk = sample[0]
+        index = sample[1]
+        path_data, edge_data, traffic_data, select_strat, assign_strat = params
+        if zatk is None:
+                process_result[index] = None
+        else:
+            atkflowset = zatk.atkflowset
+            chosen_paths = select_strat.compute(path_data, atkflowset, traffic_data['paths'])
+            bw_data, actual_traffic = assign_strat.compute(path_data, chosen_paths, edge_data)
+            process_result[index] = {"paths": chosen_paths,"bw_data": bw_data,"actual_traffic": actual_traffic}

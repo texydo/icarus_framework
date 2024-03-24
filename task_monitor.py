@@ -9,7 +9,7 @@ from icarus_simulator.job_process.edge_job import EdgeJob
 from icarus_simulator.job_process.routing_job import RouteJob
 from icarus_simulator.job_process.link_attack_job import LinkAttackJob
 from icarus_simulator.job_process.zone_attack_job import ZoneAttackJob
-
+from icarus_simulator.job_process.simulate_attack_job import AttackTrafficSimulatJob
 
 # Define a mapping from job type names to the classes
 JOB_TYPE_TO_CLASS = {
@@ -18,6 +18,7 @@ JOB_TYPE_TO_CLASS = {
     "RouteJob": RouteJob,
     "LinkAttackJob": LinkAttackJob,
     "ZoneAttackData": ZoneAttackJob,
+    "AttackTrafficSimulatJob": AttackTrafficSimulatJob,
 }
 
 def monitor_file_and_execute_job(job_numeric_id, file_to_monitor):

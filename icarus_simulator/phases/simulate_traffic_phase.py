@@ -61,9 +61,8 @@ class SimulatedTrafficPhase(BasePhase):
         chosen_paths = self.select_strat.compute(grid_pos, path_data)
 
         # Assign the paths sequentially
-        bw_data = self.assign_strat.compute(path_data, chosen_paths, edge_data)
-        #TODO extract more data
-        return ({"paths": chosen_paths,"bw_data": bw_data},)
+        bw_data, actual_traffic = self.assign_strat.compute(path_data, chosen_paths, edge_data)
+        return ({"paths": chosen_paths,"bw_data": bw_data, "actual_traffic": actual_traffic},)
 
     def _check_result(self, result: Tuple[Dict[PathData,BwData]]) -> None:
         bw_data = result[0]['bw_data']
