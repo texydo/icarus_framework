@@ -67,9 +67,19 @@ class SimulatedAttackTrafficPhase(BasePhase):
         for zatk in zone_attack_data.values():
             samples.append([zatk,index])
             index +=1
+            if index > 40:
+                break
         job_name = "AttackTrafficSimulatJob"
         process_params=(path_data, edge_data, traffic_data, self.select_strat, self.assign_strat)
         
+        # # Start a multithreaded computation
+        # multi = AttackTrafficSimulateMultiproc(
+        #     self.num_procs,
+        #     self.num_batches,
+        #     samples,
+        #     process_params=process_params,
+        # )
+        # ret_dict = (multi.process_batches(),)  # It must be a tuple!
         ret_dict = self.initate_jobs(samples, process_params, job_name)
         result = [ret_dict[i] for i in range(len(ret_dict))]
         return (result,)

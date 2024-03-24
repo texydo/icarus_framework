@@ -1,0 +1,7 @@
+
+Disuss wit hyuval and asaf regarding routing
+Discuss with yuval asaf how many zoneattacks to sample differently as there are quite alot and its huge
+
+rename the : BidirBwAssignSimulation and BaseBwAssignSimulation to proper names
+
+write a main function that will create and run different simulations and store all the data properly
