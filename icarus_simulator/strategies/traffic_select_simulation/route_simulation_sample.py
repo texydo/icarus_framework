@@ -33,14 +33,19 @@ class RandomTrafficSelectStrat(BaseBwSelectSimulation):
         weight_a = grid_pos[ord_sample[0]].weight
         weight_b = grid_pos[ord_sample[1]].weight
         weighted_avg_weight = (weight_a + weight_b) / 2
+        
+        # Gamma distribution
         k = 1.1
-        
-        
         theta = self.average_data_per_user / k
         adjusted_theta = theta * (1 + (self.max_data_per_user / self.average_data_per_user))
         data_amount = np.random.gamma(k, adjusted_theta)
+        
+        # reorgnize amount
         data_amount = data_amount * weighted_avg_weight
-        data_amount = round(data_amount, 2)
+        if data_amount > 2:
+            data_amount = int(data_amount)
+        else:
+            data_amount = round(data_amount, 2)
         data_amount = min(data_amount, self.max_data_per_user)
         
         return data_amount
