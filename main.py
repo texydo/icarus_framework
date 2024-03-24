@@ -66,7 +66,7 @@ def run_jobs():
 def prepare_system():
     from cancel_monitor_jobs import clear_jobs
     clear_jobs()
-    delete_files_in_directory("/home/roeeidan/icarus_framework/result_dumps")
+    # delete_files_in_directory("/home/roeeidan/icarus_framework/result_dumps")
     delete_files_in_directory("/home/roeeidan/icarus_framework/icarus_simulator/temp_data")
     delete_files_in_directory("/home/roeeidan/icarus_framework/logs")
     run_jobs()
@@ -186,9 +186,20 @@ def main():
             atk_in=ATK_DATA,
             zatk_out=ZONE_ATK_DATA,
         )
+        
+        sim_traffic_ph = SimulatedTrafficPhase(
+            read_persist=True,
+            persist=True,
+            select_strat=get_strat("traffic_routing_select_simulation",conf),
+            assign_strat=get_strat("traffic_routing_asg_simulation",conf),
+            grid_in=FULL_GRID_POS,
+            paths_in=PATH_DATA,
+            edges_in=EDGE_DATA,
+            traffic_out=TRAFFIC_DATA,
+        )
 
         sim = IcarusSimulator(
-            [lsn_ph, grid_ph, cov_ph, rout_ph, edge_ph, bw_ph, latk_ph, zatk_ph],
+            [lsn_ph, grid_ph, cov_ph, rout_ph, edge_ph, bw_ph, latk_ph, zatk_ph, sim_traffic_ph],
             RESULTS_DIR,
         )
         sim.compute_simulation()
@@ -204,7 +215,8 @@ def main():
         edge_data, bw_data = sim.get_property(EDGE_DATA), sim.get_property(BW_DATA)
         path_data, atk_data = sim.get_property(PATH_DATA), sim.get_property(ATK_DATA)
         zatk_data = sim.get_property(ZONE_ATK_DATA)
-
+        traffic_data =sim.get_property(TRAFFIC_DATA)
+        print("")
         # # As a first example, we plot the network as a background for other plots.
         # # Note: for this plot, only outputs from lsn_ph are required, so Simulator([lsn_ph], BASEDIR) would work too
         # # show() shows an interactive plot, save_to_file() plots to file

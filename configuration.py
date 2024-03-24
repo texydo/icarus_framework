@@ -65,6 +65,20 @@ CONFIG = {
     "zone_bneck": {
         "strat": [DetectBneckStrat],
     },
+    "traffic_routing_select_simulation":{
+        "strat":[RandomTrafficSelectStrat],
+        "actual_quanta": [200000],
+        "max_data_per_user":[200],
+        "average_data_per_user": [5],
+    },
+    "traffic_routing_asg_simulation":{
+        "strat":[BidirBwAssignSimulation],
+        "isl_bw": [2000],
+        "udl_bw": [400],
+        "utilisation": [0.9],
+        "routing_fix_strat": [1],
+        "tries_routing_fix": [0]
+    },
 }
 
 

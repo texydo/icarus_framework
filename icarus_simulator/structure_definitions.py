@@ -58,6 +58,7 @@ PathInfo = Tuple[Path, Length]
 LbSet = List[PathInfo]
 PathData = Dict[SdPair, LbSet]  # The sdpair structure is always ordered numerically
 PathId = Tuple[int, int, int]
+PathIdCost = Tuple[int, int, int, float]
 
 # Edges
 Edge = Tuple[int, int]  # An edge is a pair of sat indices, or gnd-sat indices

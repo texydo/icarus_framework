@@ -6,3 +6,4 @@ from .edge_phase import EdgePhase
 from .traffic_phase import TrafficPhase
 from .link_attack_phase import LinkAttackPhase
 from .zone_attack_phase import ZoneAttackPhase
+from .simulate_traffic_phase import SimulatedTrafficPhase
