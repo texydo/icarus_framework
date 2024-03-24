@@ -71,20 +71,8 @@ def prepare_system():
     delete_files_in_directory("/home/roeeidan/icarus_framework/logs")
     run_jobs()
 
-
-def main():
-    prepare_system()
-    # Optional feature: parse the configuration file
-    full_conf = parse_config(CONFIG)
-
-    for conf_id, conf in enumerate(full_conf):
-        # Repeat the simulation process for all configurations in the config file
-        print(
-            "---------------------------------------------------------------------------------"
-        )
-        print(f"Configuration number {conf_id}")  # 0-based
-
-        # SIMULATION: phase definition and final computation
+def initialize_icarus(conf):
+    # SIMULATION: phase definition and final computation
         lsn_ph = LSNPhase(
             True,
             True,
@@ -197,11 +185,38 @@ def main():
             edges_in=EDGE_DATA,
             traffic_out=TRAFFIC_DATA,
         )
+        
+        sim_attack_traffic_ph = SimulatedAttackTrafficPhase(
+            read_persist=True,
+            persist=True,
+            select_strat=get_strat("traffic_attack_select_simulation",conf),
+            assign_strat=get_strat("traffic_routing_asg_simulation",conf),
+            paths_in=PATH_DATA,
+            edges_in=EDGE_DATA,
+            zattack_in=ZONE_ATK_DATA,
+            traffic_in=TRAFFIC_DATA,
+            attack_traffic_out= ATTACK_TRAFFIC_DATA,
+        )
 
         sim = IcarusSimulator(
-            [lsn_ph, grid_ph, cov_ph, rout_ph, edge_ph, bw_ph, latk_ph, zatk_ph, sim_traffic_ph],
+            [lsn_ph, grid_ph, cov_ph, rout_ph, edge_ph, bw_ph, latk_ph, zatk_ph, sim_traffic_ph, sim_attack_traffic_ph],
             RESULTS_DIR,
         )
+        return sim 
+    
+def main():
+    prepare_system()
+    # Optional feature: parse the configuration file
+    full_conf = parse_config(CONFIG)
+
+    for conf_id, conf in enumerate(full_conf):
+        # Repeat the simulation process for all configurations in the config file
+        print(
+            "---------------------------------------------------------------------------------"
+        )
+        print(f"Configuration number {conf_id}")  # 0-based
+
+        sim = initialize_icarus(conf)
         sim.compute_simulation()
         print("Computation finished")
 
@@ -216,192 +231,9 @@ def main():
         path_data, atk_data = sim.get_property(PATH_DATA), sim.get_property(ATK_DATA)
         zatk_data = sim.get_property(ZONE_ATK_DATA)
         traffic_data =sim.get_property(TRAFFIC_DATA)
+        attack_traffic_data = sim.get_property(ATTACK_TRAFFIC_DATA)
         print("")
-        # # As a first example, we plot the network as a background for other plots.
-        # # Note: for this plot, only outputs from lsn_ph are required, so Simulator([lsn_ph], BASEDIR) would work too
-        # # show() shows an interactive plot, save_to_file() plots to file
-        # GeoPlotBuilder().constellation(sat_pos, isls).show().save_to_file(
-        #     "01_const_bckg.png"
-        # )
-
-        # # Plot the grid with weights. The points are automatically bigger.
-        # pt_vals = {idx: val.weight for idx, val in grid_pos.items()}
-        # GeoPlotBuilder().set_transparency(False).point_heatmap(
-        #     grid_pos, pt_vals
-        # ).save_to_file("02_grid.png")
-
-        # # Plot the satellites, in 3d. There are three sizes (LOW, MED, HI), complex plots use them
-        # GeoPlotBuilder().set_point_thickness(6, 15, 19).set_2d(False).constellation(
-        #     sat_pos, isls
-        # ).points(sat_pos, "red", GeoPlotBuilder.HI, "SAT").save_to_file("03_sats.png")
-
-        # # Plot the ISL centrality heatmap
-        # isl_vals = {
-        #     e: mean([edge_data[e].centrality, edge_data[(e[1], e[0])].centrality])
-        #     for e in edge_data
-        #     if -1 not in e and e[0] < e[1]
-        # }
-        # GeoPlotBuilder().isl_heatmap(sat_pos, isl_vals).save_to_file(
-        #     "04_centrality.png"
-        # )
-
-        # # Plot the coverage centrality, everything is re-set to the defaults
-        # isl_vals = {
-        #     e: mean([edge_data[e].cov_centr, edge_data[(e[1], e[0])].cov_centr])
-        #     for e in edge_data
-        #     if -1 not in e and e[0] < e[1]
-        # }
-        # GeoPlotBuilder().set_transparency(True).set_line_thickness(
-        #     3, 6, 9
-        # ).set_point_thickness(6, 12, 16).set_2d(False).isl_heatmap(
-        #     sat_pos, isl_vals
-        # ).save_to_file(
-        #     "05_coverage_centrality.png"
-        # )
-
-        # # Plot the bandwidth
-        # isl_vals = {
-        #     e: mean([bw_data[e].idle_bw, bw_data[(e[1], e[0])].idle_bw])
-        #     for e in bw_data
-        #     if -1 not in e and e[0] < e[1]
-        # }
-        # pt_vals = {
-        #     e[1]: mean([bw_data[e].idle_bw, bw_data[(e[1], e[0])].idle_bw])
-        #     for e in bw_data
-        #     if e[0] == -1
-        # }
-        # GeoPlotBuilder().isl_heatmap(sat_pos, isl_vals).point_heatmap(
-        #     sat_pos, pt_vals
-        # ).save_to_file("06_bandwidth.png")
-
-        # # Plot attackable links
-        # ordered_keys = [e for e in atk_data if -1 not in e and e[0] < e[1]]
-        # set_ord = set(e for e in ordered_keys if atk_data[e] is not None)
-        # set_rev = set(e for e in ordered_keys if atk_data[(e[1], e[0])] is not None)
-        # no_way = set(ordered_keys).difference(set_ord).difference(set_rev)
-        # both_ways = set_ord.intersection(set_rev)
-        # one_way = set_ord.union(set_rev).difference(both_ways)
-        # GeoPlotBuilder().path_list(
-        #     sat_pos,
-        #     grid_pos,
-        #     list(both_ways),
-        #     "rgba(144,230,138,0.8)",
-        #     GeoPlotBuilder.MED,
-        # ).path_list(
-        #     sat_pos, grid_pos, list(one_way), "rgba(243,166,12,0.8)", GeoPlotBuilder.MED
-        # ).path_list(
-        #     sat_pos, grid_pos, list(no_way), "rgba(243,12,43,0.8)", GeoPlotBuilder.MED
-        # ).save_to_file(
-        #     "07_atk_isls.png"
-        # )
-
-        # # Complex plot: plot the most complicated attack
-        # b_ed = min(
-        #     [ed for ed in atk_data if atk_data[ed] is not None and -1 not in ed],
-        #     key=lambda k: atk_data[k].detectability,
-        # )
-        # allowed_sources = get_strat("atk_constr", conf).compute(grid_pos)
-        # direction_data = get_strat("atk_filt", conf).compute(
-        #     [b_ed], edge_data, path_data, allowed_sources
-        # )
-        # pair_direction = {}
-        # for dire, pairs in direction_data.items():
-        #     for pair in pairs:
-        #         pair_direction[pair] = [-pair[0]] + list(dire[1:])  # Insert also uplink
-        # paths = [pair_direction[pair_tup[0]] for pair_tup in atk_data[b_ed].atkflowset]
-        # GeoPlotBuilder().path_list(
-        #     sat_pos, grid_pos, paths, "rgba(0,0,255,0.8)", GeoPlotBuilder.MED
-        # ).arrow(
-        #     sat_pos[b_ed[0]],
-        #     sat_pos[b_ed[1]],
-        #     "rgba(255,0,0,1.0)",
-        #     GeoPlotBuilder.HI,
-        #     "TRG",
-        # ).save_to_file(
-        #     "08_atk_viz.png"
-        # )
-
-        # # Complex plot: plot a zone attack setup
-        # b_zones = min(
-        #     [zs for zs in zatk_data if zatk_data[zs] is not None],
-        #     key=lambda k: len(zatk_data[k].bottlenecks)
-        #     / len(zatk_data[k].cross_zone_paths),
-        # )
-        # zatk = zatk_data[b_zones]
-        # zone1, zone2 = b_zones
-        # cross = [p[1:-1] for p in zatk.cross_zone_paths]
-        # GeoPlotBuilder().path_list(
-        #     sat_pos, grid_pos, cross, "rgba(0,0,255,0.8)", GeoPlotBuilder.MED
-        # ).points(
-        #     {p_id: grid_pos[p_id] for p_id in zone1}, "green", GeoPlotBuilder.MED, "Z1"
-        # ).points(
-        #     {p_id: grid_pos[p_id] for p_id in zone2}, "red", GeoPlotBuilder.MED, "Z1"
-        # ).path_list(
-        #     sat_pos, grid_pos, zatk.bottlenecks, "orange", GeoPlotBuilder.HI
-        # ).save_to_file(
-        #     "09_zone_atk.png"
-        # )
-
-        # # STATISTICAL PLOTS
-        # # CDF of attack cost on ISL, defaults
-        # costs = [
-        #     val.cost / conf["bw_asg"]["isl_bw"]
-        #     for ed, val in atk_data.items()
-        #     if val is not None and -1 not in ed
-        # ]
-        # StatPlotBuilder().cdf(costs, "Example").labels(
-        #     "ISL cost", "CDF"
-        # ).set_zero_y().save_to_file("10_cost_cdf.png")
-
-        # # PDF of attack detectability on ISL
-        # detects = [
-        #     val.detectability / conf["bw_asg"]["udl_bw"]
-        #     for ed, val in atk_data.items()
-        #     if val is not None and -1 not in ed
-        # ]
-        # StatPlotBuilder().set_bins(30).set_size(14, 5).set_thickness(5).pdf(
-        #     detects, "Example"
-        # ).labels("ISL detectability", "PDF").set_zero_y().save_to_file(
-        #     "11_detectability_pdf.png"
-        # )
-
-        # # Binned linear plot of detectability over cost
-        # StatPlotBuilder().set_bins(10).binned_line_xy(costs, detects, "Example").labels(
-        #     "ISL cost", "ISL detectability"
-        # ).set_zero_y().save_to_file("12_detect_cost.png")
-
-        # # CDFs of zone attack cost and distance, defaults
-        # costs = [
-        #     val.cost / conf["bw_asg"]["isl_bw"]
-        #     for val in zatk_data.values()
-        #     if val is not None
-        # ]
-        # detects = [
-        #     val.detectability / conf["bw_asg"]["udl_bw"]
-        #     for val in zatk_data.values()
-        #     if val is not None
-        # ]
-        # StatPlotBuilder().cdf(costs, "Cost CDF").cdf(
-        #     detects, "Detectability CDF"
-        # ).labels("", "CDF").set_zero_y().legend().save_to_file(
-        #     "13_zone_cost_detect_cdf.png"
-        # )
-
-        # # Scatter plot of zone attack cost over distance
-        # distances = [
-        #     val.distance / 1000 for val in zatk_data.values() if val is not None
-        # ]
-        # StatPlotBuilder().point_xy(x=distances, y=costs, label="Zone attacks").labels(
-        #     "Distance[km]", "Cost"
-        # ).save_to_file("14_zone_scatter_cost_distance.png")
-
-        # # Binned linear plot of zone attack detectability over cost
-        # StatPlotBuilder().set_bins(10).point_xy(
-        #     x=costs, y=detects, label="Example"
-        # ).labels("Attack cost", "Attack detectability").set_zero_y().save_to_file(
-        #     "15_zone_detect_cost.png"
-        # )
-
+        
 
 # Execute on main
 if __name__ == "__main__":

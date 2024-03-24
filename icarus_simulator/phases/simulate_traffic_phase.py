@@ -1,6 +1,6 @@
 #  2020 Tommaso Ciussani and Giacomo Giuliari
 
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 from icarus_simulator.phases.base_phase import BasePhase
 from icarus_simulator.strategies.base_strat import BaseStrat
@@ -56,18 +56,16 @@ class SimulatedTrafficPhase(BasePhase):
 
     def _compute(
         self, grid_pos: GridPos, path_data: PathData, edge_data: EdgeData
-    ) -> Tuple[BwData]:
+    ) -> Tuple[Dict[PathData,BwData]]:
         
-        # TODO: Initialize and get wanted networks
-        # TODO: Simulate bw allocation according to wanted desire
-        # TODO: return routing_paths bw_routing_paths, bw_with_attack_routing paths
         chosen_paths = self.select_strat.compute(grid_pos, path_data)
 
         # Assign the paths sequentially
         bw_data = self.assign_strat.compute(path_data, chosen_paths, edge_data)
+        #TODO extract more data
         return ({"paths": chosen_paths,"bw_data": bw_data},)
 
-    def _check_result(self, result: Tuple[BwData]) -> None:
+    def _check_result(self, result: Tuple[Dict[PathData,BwData]]) -> None:
         bw_data = result[0]['bw_data']
         for bd in bw_data.values():
             assert bd.idle_bw <= bd.capacity

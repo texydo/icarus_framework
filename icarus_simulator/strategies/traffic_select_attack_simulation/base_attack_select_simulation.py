@@ -8,12 +8,10 @@ from abc import abstractmethod
 from typing import List
 
 from icarus_simulator.strategies.base_strat import BaseStrat
-from icarus_simulator.structure_definitions import PathData, EdgeData, BwData, PathIdCost
+from icarus_simulator.structure_definitions import PathData, PathIdCost, AttackFlowsetData
 
 
-class BaseBwAssignSimulation(BaseStrat):
+class BaseAttackSelectSimulation(BaseStrat):
     @abstractmethod
-    def compute(
-        self, path_data: PathData, path_list: List[PathIdCost], edge_data: EdgeData
-    ) -> BwData:
+    def compute(self, path_data: PathData, atkflowset: AttackFlowsetData, traffic_paths: PathIdCost) -> List[PathIdCost]:
         raise NotImplementedError

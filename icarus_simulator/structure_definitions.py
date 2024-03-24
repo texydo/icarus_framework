@@ -58,8 +58,9 @@ PathInfo = Tuple[Path, Length]
 LbSet = List[PathInfo]
 PathData = Dict[SdPair, LbSet]  # The sdpair structure is always ordered numerically
 PathId = Tuple[int, int, int]
-PathIdCost = Tuple[int, int, int, float]
 
+PathIdCost = Tuple[int, int, int, float]
+AttackFlowsetData = dict[Tuple[Tuple[int, int]], int]
 # Edges
 Edge = Tuple[int, int]  # An edge is a pair of sat indices, or gnd-sat indices
 # The set contains the indices of cross zone paths covered by the edge
@@ -131,3 +132,4 @@ class ZoneAttackInfo(AttackInfo):
 
 
 ZoneAttackData = Dict[Tuple[TupleZone, TupleZone], Optional[ZoneAttackInfo]]
+TrafficData = Dict[List[PathIdCost], BwData]

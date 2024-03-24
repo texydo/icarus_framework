@@ -79,6 +79,9 @@ CONFIG = {
         "routing_fix_strat": [1],
         "tries_routing_fix": [0]
     },
+    "traffic_attack_select_simulation":{
+        "strat":[AttackTrafficSelectStrat]
+    }
 }
 
 
