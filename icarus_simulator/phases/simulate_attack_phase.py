@@ -75,16 +75,18 @@ class SimulatedAttackTrafficPhase(BasePhase):
             return (None,)
         job_name = "AttackTrafficSimulatJob"
         process_params=(path_data, edge_data, traffic_data, self.select_strat, self.assign_strat)
+        ret_dict = self.initate_jobs(samples, process_params, job_name)
         
         # # Start a multithreaded computation
         # multi = AttackTrafficSimulateMultiproc(
-        #     self.num_procs,
-        #     self.num_batches,
+        #     121,
+        #     10,
         #     samples,
         #     process_params=process_params,
         # )
-        # ret_dict = (multi.process_batches(),)  # It must be a tuple!
-        ret_dict = self.initate_jobs(samples, process_params, job_name)
+        # ret_dict = multi.process_batches()  # It must be a tuple!
+        
+        
         result = [ret_dict[i] for i in range(len(ret_dict))]
         return (result,)
 

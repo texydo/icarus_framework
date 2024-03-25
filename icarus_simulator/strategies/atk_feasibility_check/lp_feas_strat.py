@@ -1,4 +1,5 @@
 #  2020 Tommaso Ciussani and Giacomo Giuliari
+import random
 import numpy as np
 from math import ceil
 from typing import List, Optional, Tuple
@@ -122,6 +123,7 @@ class LPFeasStrat(BaseFeasStrat):
         # env.start()
         import time
         start_time = time.time()
+        
         counter = 0
         while True:
             try:
@@ -129,6 +131,8 @@ class LPFeasStrat(BaseFeasStrat):
                 break
             except gp.GurobiError as e:
                 print("Gurobi error encountered:", e)
+                wait_time = random_wait()
+                time.sleep(wait_time)
                 counter += 1
             except Exception as e:
                 print("Other error encountered:", e)
@@ -178,3 +182,6 @@ class LPFeasStrat(BaseFeasStrat):
             tot_needed,
             max(edges_bw[ed] for ed in edges_bw if ed[0] == -1),
         )
+
+def random_wait():
+    return random.uniform(0.5, 1)

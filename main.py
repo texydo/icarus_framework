@@ -103,7 +103,21 @@ def copy_files(output_dir, conf_id, paths_to_copy, conf):
     file_path = os.path.join(new_dir_path, "conf.pkl")
     with open(file_path, 'wb') as file:
         pickle.dump(conf, file)
-    
+
+def clear_logs_in_directory(directory):
+    if not os.path.isdir(directory):
+        return  # If the directory is not valid, exit the function
+
+    log_files = [os.path.join(directory, file) for file in os.listdir(directory) if file.endswith('.log')]
+    import fcntl
+    for log_file in log_files:
+        with open(log_file, 'a+') as file:
+            try:
+                fcntl.flock(file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                file.truncate(0)  # Clear the file
+                fcntl.flock(file.fileno(), fcntl.LOCK_UN)
+            except BlockingIOError:
+                print(f"File '{log_file}' is locked by another process.")
             
 def run_jobs():
     from job_manager import JobManager
@@ -112,7 +126,7 @@ def run_jobs():
     env_path = "/home/roeeidan/.conda/envs/icarus/bin/python"
     temp_data_path = "/home/roeeidan/icarus_framework/logs"
     monitor_file_template = "/home/roeeidan/icarus_framework/icarus_simulator/temp_data/run_X.txt"
-    num_jobs = 40
+    num_jobs = 35
     cpus_per_job = 16
     mem = 120
 
@@ -120,12 +134,16 @@ def run_jobs():
     manager.create_jobs()  
 
 
+def clean_paths():
+    delete_files_in_directory("/home/roeeidan/icarus_framework/results")
+    delete_files_in_directory("/home/roeeidan/icarus_framework/icarus_simulator/temp_data")
+    
+    
 def prepare_system():
     from cancel_monitor_jobs import clear_jobs
     clear_jobs()
-    delete_files_in_directory("/home/roeeidan/icarus_framework/results")
-    delete_files_in_directory("/home/roeeidan/icarus_framework/icarus_simulator/temp_data")
     delete_files_in_directory("/home/roeeidan/icarus_framework/logs")
+    clean_paths()
     run_jobs()
 
 def initialize_icarus(conf):
@@ -262,22 +280,19 @@ def initialize_icarus(conf):
         return sim 
     
 def main():
-    # prepare_system()
-    # Optional feature: parse the configuration file
-    # import pickle
-    # input_file_path = "config.pkl"
-    # with open(input_file_path, "rb") as pickle_file:
-    #     CONFIG = pickle.load(pickle_file)
+    prepare_system()
     output_dir = OUTPUT_DIR
     logs_dir = LOGS_DIR
     paths_to_copy = [LOGS_DIR,RESULTS_DIR]
     original_stdout = sys.stdout
     original_stderr = sys.stderr
+    inital_start = 26
     number_runs = 999
-    for conf_id in range(number_runs):
+    for conf_id in range(inital_start, inital_start + number_runs):
+        print(f"current run out of {conf_id} {number_runs}")
         try:
+            clean_paths()
             # Repeat the simulation process for all configurations in the config file
-            prepare_system()
             conf = parse_config(get_random_dict())[0]
             logger_name = os.path.join(logs_dir, f"simulation_{conf_id}.log")
             sys.stdout = Logger(logger_name)
@@ -294,6 +309,8 @@ def main():
             sys.stdout = original_stdout
             sys.stderr = original_stderr
             copy_files(output_dir, conf_id, paths_to_copy, conf)
+            os.remove(logger_name)
+            clear_logs_in_directory(logs_dir)
         except Exception as e:
             print(f"error {e}", flush=True)
             sys.stdout.log.close()  # Close the log file associated with the logger

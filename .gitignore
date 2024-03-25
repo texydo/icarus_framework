@@ -5,5 +5,6 @@ results/
 icarus_simulator/temp_data/
 icarus_simulator/data/
 main_logs/
+outputs/
 # Ignore all .pyc files
 *.pyc
