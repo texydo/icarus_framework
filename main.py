@@ -286,7 +286,7 @@ def main():
     paths_to_copy = [LOGS_DIR,RESULTS_DIR]
     original_stdout = sys.stdout
     original_stderr = sys.stderr
-    inital_start = 26
+    inital_start = 28
     number_runs = 999
     for conf_id in range(inital_start, inital_start + number_runs):
         print(f"current run out of {conf_id} {number_runs}")
