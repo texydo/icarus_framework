@@ -2,7 +2,7 @@
 from typing import List
 
 from icarus_simulator.strategies.traffic_assignment_simulation.base_bw_assig_simulation import (
-    BaseBwAssignSimulation,
+    BaseTrafficAssignSimulation,
 )
 from icarus_simulator.structure_definitions import (
     BwData,
@@ -14,7 +14,7 @@ from icarus_simulator.structure_definitions import (
 from icarus_simulator.utils import get_edges
 
 
-class BidirBwAssignSimulation(BaseBwAssignSimulation):
+class BidirTrafficAssignSimulation(BaseTrafficAssignSimulation):
     def __init__(self, isl_bw: int, udl_bw: int, utilisation: float, **kwargs):
         super().__init__()
         self.isl_bw = isl_bw

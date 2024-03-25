@@ -8,7 +8,7 @@ from icarus_simulator.strategies.traffic_select_attack_simulation.base_attack_se
     BaseAttackSelectSimulation,
 )
 from icarus_simulator.strategies.traffic_assignment_simulation.base_bw_assig_simulation import (
-    BaseBwAssignSimulation,
+    BaseTrafficAssignSimulation,
 )
 from icarus_simulator.multiprocessor import Multiprocessor
 from icarus_simulator.structure_definitions import (
@@ -29,7 +29,7 @@ class SimulatedAttackTrafficPhase(BasePhase):
         read_persist: bool,
         persist: bool,
         select_strat: BaseAttackSelectSimulation,
-        assign_strat: BaseBwAssignSimulation,
+        assign_strat: BaseTrafficAssignSimulation,
         paths_in: Pname,
         edges_in: Pname,
         zattack_in: Pname,
@@ -38,7 +38,7 @@ class SimulatedAttackTrafficPhase(BasePhase):
     ):
         super().__init__(read_persist, persist)
         self.select_strat: BaseAttackSelectSimulation = select_strat
-        self.assign_strat: BaseBwAssignSimulation = assign_strat
+        self.assign_strat: BaseTrafficAssignSimulation = assign_strat
         self.ins: List[Pname] = [paths_in, edges_in, zattack_in, traffic_in]
         self.outs: List[Pname] = [attack_traffic_out]
 
@@ -100,7 +100,7 @@ class AttackTrafficSimulateMultiproc(Multiprocessor):
     ) -> None:
         zatk: ZoneAttackInfo
         select_strat: BaseAttackSelectSimulation
-        assign_strat: BaseBwAssignSimulation
+        assign_strat: BaseTrafficAssignSimulation
         zatk = sample[0]
         index = sample[1]
         path_data, edge_data, traffic_data, select_strat, assign_strat = params
@@ -110,4 +110,4 @@ class AttackTrafficSimulateMultiproc(Multiprocessor):
             atkflowset = zatk.atkflowset
             chosen_paths = select_strat.compute(path_data, atkflowset, traffic_data['paths'])
             bw_data, actual_traffic = assign_strat.compute(path_data, chosen_paths, edge_data)
-            process_result[index] = {"paths": chosen_paths,"bw_data": bw_data,"actual_traffic": actual_traffic}
+            process_result[index] = {"bw_data": bw_data,"actual_traffic": actual_traffic}

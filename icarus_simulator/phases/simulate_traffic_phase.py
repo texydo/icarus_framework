@@ -9,7 +9,7 @@ from icarus_simulator.strategies.traffic_select_simulation.base_bw_select_simula
     BaseBwSelectSimulation,
 )
 from icarus_simulator.strategies.traffic_assignment_simulation.base_bw_assig_simulation import (
-    BaseBwAssignSimulation,
+    BaseTrafficAssignSimulation,
 )
 from icarus_simulator.structure_definitions import (
     GridPos,
@@ -26,7 +26,7 @@ class SimulatedTrafficPhase(BasePhase):
         read_persist: bool,
         persist: bool,
         select_strat: BaseBwSelectSimulation,
-        assign_strat: BaseBwAssignSimulation,
+        assign_strat: BaseTrafficAssignSimulation,
         grid_in: Pname,
         paths_in: Pname,
         edges_in: Pname,
@@ -34,7 +34,7 @@ class SimulatedTrafficPhase(BasePhase):
     ):
         super().__init__(read_persist, persist)
         self.select_strat: BaseBwSelectSimulation = select_strat
-        self.assign_strat: BaseBwAssignSimulation = assign_strat 
+        self.assign_strat: BaseTrafficAssignSimulation = assign_strat 
         self.ins: List[Pname] = [grid_in, paths_in, edges_in]
         self.outs: List[Pname] = [traffic_out]
 

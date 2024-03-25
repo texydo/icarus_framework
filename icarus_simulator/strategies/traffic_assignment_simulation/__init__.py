@@ -1,1 +1,1 @@
-from .bidir_bw_assign_simulation import BidirBwAssignSimulation
+from .bidir_bw_assign_simulation import BidirTrafficAssignSimulation

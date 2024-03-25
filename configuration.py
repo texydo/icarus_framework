@@ -72,7 +72,7 @@ CONFIG = {
         "average_data_per_user": [5],
     },
     "traffic_routing_asg_simulation":{
-        "strat":[BidirBwAssignSimulation],
+        "strat":[BidirTrafficAssignSimulation],
         "isl_bw": [2000],
         "udl_bw": [400],
         "utilisation": [0.9],
