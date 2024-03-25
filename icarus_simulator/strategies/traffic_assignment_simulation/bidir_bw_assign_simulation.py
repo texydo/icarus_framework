@@ -72,6 +72,8 @@ class BidirTrafficAssignSimulation(BaseTrafficAssignSimulation):
                     inv_ed = (ed[1], ed[0])
                     bw_data[ed].idle_bw += data_amount
                     bw_data[inv_ed].idle_bw += data_amount
+                    bw_data[ed].idle_bw = round(bw_data[ed].idle_bw, 2)
+                    bw_data[inv_ed].idle_bw = round(bw_data[inv_ed].idle_bw, 2)
                     actual_traffic.append(path_id)
             else:
                 dropped += 1

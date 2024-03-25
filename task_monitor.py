@@ -28,6 +28,7 @@ def monitor_file_and_execute_job(job_numeric_id, file_to_monitor):
         # Check if the file exists
         if os.path.exists(file_to_monitor):
             start_time = time.time()
+            print(f"time start {time.strftime("%H:%M:%S", time.localtime(start_time))}")
             try:
                 with open(file_to_monitor, 'r') as file:
                     job_type_name = file.read().strip()  # Read job type from file
