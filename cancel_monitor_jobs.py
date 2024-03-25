@@ -18,10 +18,10 @@ def get_running_jobs(job_name_pattern, valid_user):
         
         # Filter job IDs by validating the user name
         job_ids = [job_id for job_id, user in matches if user == valid_user]
-        print(f"Found job IDs for user '{valid_user}': {job_ids}")
+        print(f"Found job IDs for user '{valid_user}': {job_ids}", flush=True)
         return job_ids
     except subprocess.CalledProcessError as e:
-        print(f"Failed to run squeue: {e}")
+        print(f"Failed to run squeue: {e}", flush=True)
         return []
 
 def cancel_jobs(job_ids):
@@ -30,8 +30,8 @@ def cancel_jobs(job_ids):
         try:
             subprocess.check_call(['scancel', job_id])
         except subprocess.CalledProcessError as e:
-            print(f"Failed to cancel job {job_id}: {e}")
-    print(f"Cancelled all none stated jobs")
+            print(f"Failed to cancel job {job_id}: {e}", flush=True)
+    print(f"Cancelled all none stated jobs", flush=True)
 
 def clear_jobs():
     job_name_pattern = "multi_job"
@@ -41,7 +41,7 @@ def clear_jobs():
     if job_ids:
         cancel_jobs(job_ids)
     else:
-        print(f"No matching jobs found for user '{valid_user}'.")
+        print(f"No matching jobs found for user '{valid_user}'.",flush=True)
 
 if __name__ == '__main__':
     clear_jobs()

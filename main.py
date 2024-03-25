@@ -54,7 +54,7 @@ def delete_files_in_directory(directory_path):
     
     # Check if the directory exists
     if not os.path.isdir(directory_path):
-        print(f"The directory {directory_path} does not exist.")
+        print(f"The directory {directory_path} does not exist.", flush=True)
         return
 
     # Iterate over all files in the directory and remove them
@@ -65,9 +65,9 @@ def delete_files_in_directory(directory_path):
                 os.unlink(file_path)
                 # print(f"Deleted {file_path}")
             else:
-                print(f"Skipped {file_path} (Not a file)")
+                print(f"Skipped {file_path} (Not a file)", flush=True)
         except Exception as e:
-            print(f"Failed to delete {file_path}. Reason: {e}")
+            print(f"Failed to delete {file_path}. Reason: {e}", flush=True)
 
 def copy_files_with_subdirectories(paths_to_copy, destination_folder):
     for source_path in paths_to_copy:

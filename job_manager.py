@@ -41,7 +41,7 @@ class JobManager:
             result = subprocess.run(['sbatch', script], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             job_id = result.stdout.strip().split()[-1]
             self.job_ids.append(job_id)
-        print("Submitted jobs with IDs:", self.job_ids)
+        print("Submitted jobs with IDs:", self.job_ids, flush=True)
 
     def cleanup(self):
         for script in self.job_scripts:
