@@ -273,8 +273,8 @@ def main():
     paths_to_copy = [LOGS_DIR,RESULTS_DIR]
     original_stdout = sys.stdout
     original_stderr = sys.stderr
-
-    for conf_id in range(999):
+    number_runs = 999
+    for conf_id in range(number_runs):
         try:
             # Repeat the simulation process for all configurations in the config file
             prepare_system()
@@ -284,8 +284,8 @@ def main():
             sys.stderr = sys.stdout
             print(
                 "---------------------------------------------------------------------------------"
-            )
-            print(f"Configuration number {conf_id}")  # 0-based
+            ,flush=True)
+            print(f"Configuration number {conf_id} out of {number_runs}",flush=True)  # 0-based
 
             sim = initialize_icarus(conf)
             sim.compute_simulation()
@@ -295,7 +295,7 @@ def main():
             sys.stderr = original_stderr
             copy_files(output_dir, conf_id, paths_to_copy, conf)
         except Exception as e:
-            print(f"error {e}")
+            print(f"error {e}", flush=True)
             sys.stdout.log.close()  # Close the log file associated with the logger
             sys.stdout = original_stdout
             sys.stderr = original_stderr
