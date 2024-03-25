@@ -65,10 +65,14 @@ class SimulatedAttackTrafficPhase(BasePhase):
         index = 0
         samples = []
         for zatk in zone_attack_data.values():
+            if zatk is None:
+                continue
             samples.append([zatk,index])
             index +=1
             if index > 40:
                 break
+        if len(samples) ==0:
+            return (None,)
         job_name = "AttackTrafficSimulatJob"
         process_params=(path_data, edge_data, traffic_data, self.select_strat, self.assign_strat)
         
@@ -90,6 +94,8 @@ class SimulatedAttackTrafficPhase(BasePhase):
                 continue
             bw_data = data['bw_data']
             break
+        if bw_data is None:
+            return
         for bd in bw_data.values():
             assert bd.idle_bw <= bd.capacity
         return

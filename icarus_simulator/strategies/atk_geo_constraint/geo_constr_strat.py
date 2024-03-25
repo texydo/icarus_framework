@@ -145,5 +145,5 @@ def load_country_geojson():
             for l1 in range(len(geom["coordinates"])):
                 for l2 in range(len(geom["coordinates"][l1])):
                     geom["coordinates"][l1][l2] = geom["coordinates"][l1][l2][::-1]
-    print(f"Available subregions: {list(new_data['subregions'].keys())}")
+    # print(f"Available subregions: {list(new_data['subregions'].keys())}")
     return new_data

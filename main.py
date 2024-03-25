@@ -17,6 +17,7 @@ Due to the computational burden, it is advised to always run this library on a h
 """
 import os
 import shutil
+import pickle
 from statistics import mean
 
 from icarus_simulator.icarus_simulator import IcarusSimulator
@@ -25,11 +26,29 @@ from icarus_simulator.phases import *
 from sat_plotter import GeoPlotBuilder
 from sat_plotter.stat_plot_builder import StatPlotBuilder
 
-from configuration import CONFIG, parse_config, get_strat
+from configuration import CONFIG, parse_config, get_strat, get_random_dict
 
+import sys
+
+class Logger(object):
+    def __init__(self, filename="Default.log"):
+        self.terminal = sys.stdout  # Save a reference to the original standard output
+        self.log = open(filename, "a")  # Open a log file in append mode
+
+    def write(self, message):
+        self.terminal.write(message)  # Write the message to the standard output
+        self.log.write(message)  # Write the message to the log file
+
+    def flush(self):  # Needed for Python 3 compatibility
+        # This flush method is needed for python 3 compatibility.
+        # This handles the implicit flush command by file objects.
+        pass
+    
 # Change these parameters to match your machine
 CORE_NUMBER = 16
-RESULTS_DIR = "result_dumps"
+RESULTS_DIR = "results"
+OUTPUT_DIR = "outputs"
+LOGS_DIR = "logs"
 
 def delete_files_in_directory(directory_path):
     
@@ -76,6 +95,15 @@ def copy_files_with_subdirectories(paths_to_copy, destination_folder):
                     # Copy the file to the destination
                     shutil.copyfile(source_file, destination_file)
 
+def copy_files(output_dir, conf_id, paths_to_copy, conf):
+    new_dir_path = os.path.join(output_dir, str(conf_id))
+    if not os.path.exists(new_dir_path):
+        os.makedirs(new_dir_path)
+    copy_files_with_subdirectories(paths_to_copy, new_dir_path)
+    file_path = os.path.join(new_dir_path, "conf.pkl")
+    with open(file_path, 'wb') as file:
+        pickle.dump(conf, file)
+    
             
 def run_jobs():
     from job_manager import JobManager
@@ -95,7 +123,7 @@ def run_jobs():
 def prepare_system():
     from cancel_monitor_jobs import clear_jobs
     clear_jobs()
-    # delete_files_in_directory("/home/roeeidan/icarus_framework/result_dumps")
+    delete_files_in_directory("/home/roeeidan/icarus_framework/results")
     delete_files_in_directory("/home/roeeidan/icarus_framework/icarus_simulator/temp_data")
     delete_files_in_directory("/home/roeeidan/icarus_framework/logs")
     run_jobs()
@@ -234,35 +262,44 @@ def initialize_icarus(conf):
         return sim 
     
 def main():
-    copy_files_with_subdirectories(["/home/roeeidan/icarus_framework/result_dumps","/home/roeeidan/icarus_framework/logs"],"/home/roeeidan/icarus_framework/test")
-    0/0
-    prepare_system()
+    # prepare_system()
     # Optional feature: parse the configuration file
-    full_conf = parse_config(CONFIG)
+    # import pickle
+    # input_file_path = "config.pkl"
+    # with open(input_file_path, "rb") as pickle_file:
+    #     CONFIG = pickle.load(pickle_file)
+    output_dir = OUTPUT_DIR
+    logs_dir = LOGS_DIR
+    paths_to_copy = [LOGS_DIR,RESULTS_DIR]
+    original_stdout = sys.stdout
+    original_stderr = sys.stderr
 
-    for conf_id, conf in enumerate(full_conf):
-        # Repeat the simulation process for all configurations in the config file
-        print(
-            "---------------------------------------------------------------------------------"
-        )
-        print(f"Configuration number {conf_id}")  # 0-based
+    for conf_id in range(999):
+        try:
+            # Repeat the simulation process for all configurations in the config file
+            prepare_system()
+            conf = parse_config(get_random_dict())[0]
+            logger_name = os.path.join(logs_dir, f"simulation_{conf_id}.log")
+            sys.stdout = Logger(logger_name)
+            sys.stderr = sys.stdout
+            print(
+                "---------------------------------------------------------------------------------"
+            )
+            print(f"Configuration number {conf_id}")  # 0-based
 
-        sim = initialize_icarus(conf)
-        sim.compute_simulation()
-        print("Computation finished")
-
-        sat_pos, isls, grid_pos = (
-            sim.get_property(SAT_POS),
-            sim.get_property(SAT_ISLS),
-            sim.get_property(GRID_POS),
-        )
-        edge_data, bw_data = sim.get_property(EDGE_DATA), sim.get_property(BW_DATA)
-        path_data, atk_data = sim.get_property(PATH_DATA), sim.get_property(ATK_DATA)
-        zatk_data = sim.get_property(ZONE_ATK_DATA)
-        traffic_data =sim.get_property(TRAFFIC_DATA)
-        attack_traffic_data = sim.get_property(ATTACK_TRAFFIC_DATA)
-        print("")
-        
+            sim = initialize_icarus(conf)
+            sim.compute_simulation()
+            
+            sys.stdout.log.close()  # Close the log file associated with the logger
+            sys.stdout = original_stdout
+            sys.stderr = original_stderr
+            copy_files(output_dir, conf_id, paths_to_copy, conf)
+        except Exception as e:
+            print(f"error {e}")
+            sys.stdout.log.close()  # Close the log file associated with the logger
+            sys.stdout = original_stdout
+            sys.stderr = original_stderr
+            
 
 # Execute on main
 if __name__ == "__main__":
