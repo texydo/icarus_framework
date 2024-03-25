@@ -15,6 +15,8 @@ from the IcarusSimulator object and creates useful plots.
 After adjusting the class constants, execute the file to create the plots and the result dumps.
 Due to the computational burden, it is advised to always run this library on a heavy-multicore machine.
 """
+import os
+import shutil
 from statistics import mean
 
 from icarus_simulator.icarus_simulator import IcarusSimulator
@@ -30,7 +32,7 @@ CORE_NUMBER = 16
 RESULTS_DIR = "result_dumps"
 
 def delete_files_in_directory(directory_path):
-    import os
+    
     # Check if the directory exists
     if not os.path.isdir(directory_path):
         print(f"The directory {directory_path} does not exist.")
@@ -47,6 +49,33 @@ def delete_files_in_directory(directory_path):
                 print(f"Skipped {file_path} (Not a file)")
         except Exception as e:
             print(f"Failed to delete {file_path}. Reason: {e}")
+
+def copy_files_with_subdirectories(paths_to_copy, destination_folder):
+    for source_path in paths_to_copy:
+        # Get the last component of the source path
+        _, last_component = os.path.split(source_path)
+        # Construct the destination path
+        destination_path = os.path.join(destination_folder, last_component)
+        
+        # If the source path is a file, copy it directly
+        if os.path.isfile(source_path):
+            # Create the directory structure if it doesn't exist
+            os.makedirs(destination_folder, exist_ok=True)
+            # Copy the file to the destination
+            shutil.copyfile(source_path, destination_path)
+        # If the source path is a directory, copy its contents recursively
+        elif os.path.isdir(source_path):
+            # Copy the directory contents to the destination
+            for root, _, files in os.walk(source_path):
+                for file in files:
+                    source_file = os.path.join(root, file)
+                    # Construct the destination file path
+                    destination_file = os.path.join(destination_path, os.path.relpath(source_file, source_path))
+                    # Create the directory structure if it doesn't exist
+                    os.makedirs(os.path.dirname(destination_file), exist_ok=True)
+                    # Copy the file to the destination
+                    shutil.copyfile(source_file, destination_file)
+
             
 def run_jobs():
     from job_manager import JobManager
@@ -205,6 +234,8 @@ def initialize_icarus(conf):
         return sim 
     
 def main():
+    copy_files_with_subdirectories(["/home/roeeidan/icarus_framework/result_dumps","/home/roeeidan/icarus_framework/logs"],"/home/roeeidan/icarus_framework/test")
+    0/0
     prepare_system()
     # Optional feature: parse the configuration file
     full_conf = parse_config(CONFIG)
@@ -220,8 +251,6 @@ def main():
         sim.compute_simulation()
         print("Computation finished")
 
-        # EXAMPLE PLOTS
-        # GEOGRAPHICAL PLOTS
         sat_pos, isls, grid_pos = (
             sim.get_property(SAT_POS),
             sim.get_property(SAT_ISLS),
