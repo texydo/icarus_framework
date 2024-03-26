@@ -89,7 +89,7 @@ class SimulatedAttackTrafficPhase(BasePhase):
                 self.num_procs,
                 self.num_batches,
                 samples,
-                process_params=process_params,
+                process_params=(path_data, edge_data, traffic_data, self.select_strat, self.assign_strat),
             )
             ret_dict = multi.process_batches()  # It must be a tuple!
         result = [ret_dict[i] for i in range(len(ret_dict))]

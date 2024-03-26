@@ -146,7 +146,6 @@ class ZoneAttackPhase(BasePhase):
                     atk_data,
                     allowed_sources,
                 ),
-                verbose=True,
             )
             ret_tuple = (multi.process_batches(),)  # It must be a tuple!
         return ret_tuple
