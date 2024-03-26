@@ -24,6 +24,7 @@ class RoutingPhase(BasePhase):
         persist: bool,
         num_procs: int,
         num_batches: int,
+        run_jobs: bool,
         rout_strat: BaseRoutingStrat,
         grid_in: Pname,
         nw_in: Pname,
@@ -33,6 +34,7 @@ class RoutingPhase(BasePhase):
         super().__init__(read_persist, persist)
         self.num_procs = num_procs
         self.num_batches = num_batches
+        self.run_jobs = run_jobs
         self.rout_strat: BaseRoutingStrat = rout_strat
         self.ins: List[Pname] = [grid_in, nw_in, cov_in]
         self.outs: List[Pname] = [paths_out]
@@ -64,18 +66,19 @@ class RoutingPhase(BasePhase):
             for dst_key_id in range(src_key_id + 1, len(grid_ids)):
                 out_grid = grid_ids[dst_key_id]
                 pairs.append((in_grid, out_grid))
-        
-        job_name = "RouteJob"
-        process_params=(grid, network, coverage, self.rout_strat)
-        ret_tuple = (self.initate_jobs(pairs, process_params, job_name),)
-        # # Start a multithreaded computation
-        # multi = RoutingMultiproc(
-        #     self.num_procs,
-        #     self.num_batches,
-        #     pairs,
-        #     process_params=(grid, network, coverage, self.rout_strat),
-        # )
-        # ret_tuple = (multi.process_batches(),)  # It must be a tuple!
+        if self.run_jobs:
+            job_name = "RouteJob"
+            process_params=(grid, network, coverage, self.rout_strat)
+            ret_tuple = (self.initate_jobs(pairs, process_params, job_name),)
+        else:
+            # Start a multithreaded computation
+            multi = RoutingMultiproc(
+                self.num_procs,
+                self.num_batches,
+                pairs,
+                process_params=(grid, network, coverage, self.rout_strat),
+            )
+            ret_tuple = (multi.process_batches(),)  # It must be a tuple!
         return ret_tuple
 
     def _check_result(self, result: Tuple[PathData]) -> None:

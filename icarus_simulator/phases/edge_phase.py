@@ -29,6 +29,7 @@ class EdgePhase(BasePhase):
         persist: bool,
         num_procs: int,
         num_batches: int,
+        run_jobs: bool,
         ed_strat: BaseEdgeStrat,
         paths_in: Pname,
         nw_in: Pname,
@@ -39,6 +40,7 @@ class EdgePhase(BasePhase):
         super().__init__(read_persist, persist)
         self.num_procs = num_procs
         self.num_batches = num_batches
+        self.run_jobs = run_jobs
         self.ed_strat: BaseEdgeStrat = ed_strat
         self.ins: List[Pname] = [paths_in, nw_in, sats_in, grid_in]
         self.outs: List[Pname] = [edges_out]
@@ -68,16 +70,16 @@ class EdgePhase(BasePhase):
             for pair, pd_list in path_data.items()
             for list_id, pd in enumerate(pd_list)
         ]
-
-        job_name = "EdgeJob"
-        process_params=(self.ed_strat,)
-        edge_infos: Dict[Edge, TempEdgeInfo] = self.initate_jobs(all_paths, process_params, job_name)
-        
-        # # Start a multithreaded computation
-        # multi = EdgeMultiproc(
-        #     self.num_procs, self.num_batches, all_paths, process_params=(self.ed_strat,)
-        # )
-        # edge_infos: Dict[Edge, TempEdgeInfo] = multi.process_batches()
+        if self.run_jobs:
+            job_name = "EdgeJob"
+            process_params=(self.ed_strat,)
+            edge_infos: Dict[Edge, TempEdgeInfo] = self.initate_jobs(all_paths, process_params, job_name)
+        else:
+            # Start a multithreaded computation
+            multi = EdgeMultiproc(
+                self.num_procs, self.num_batches, all_paths, process_params=(self.ed_strat,)
+            )
+            edge_infos: Dict[Edge, TempEdgeInfo] = multi.process_batches()
 
         # Transform to EdgeInfo and add the missing edges
         all_edges = list(network.edges())

@@ -28,6 +28,9 @@ class SimulatedAttackTrafficPhase(BasePhase):
         self,
         read_persist: bool,
         persist: bool,
+        num_procs: int,
+        num_batches: int,
+        run_jobs: bool,
         select_strat: BaseAttackSelectSimulation,
         assign_strat: BaseTrafficAssignSimulation,
         paths_in: Pname,
@@ -37,6 +40,9 @@ class SimulatedAttackTrafficPhase(BasePhase):
         attack_traffic_out: Pname,
     ):
         super().__init__(read_persist, persist)
+        self.num_procs = num_procs
+        self.num_batches = num_batches
+        self.run_jobs = run_jobs
         self.select_strat: BaseAttackSelectSimulation = select_strat
         self.assign_strat: BaseTrafficAssignSimulation = assign_strat
         self.ins: List[Pname] = [paths_in, edges_in, zattack_in, traffic_in]
@@ -73,20 +79,19 @@ class SimulatedAttackTrafficPhase(BasePhase):
                 break
         if len(samples) ==0:
             return (None,)
-        job_name = "AttackTrafficSimulatJob"
-        process_params=(path_data, edge_data, traffic_data, self.select_strat, self.assign_strat)
-        ret_dict = self.initate_jobs(samples, process_params, job_name)
-        
-        # # Start a multithreaded computation
-        # multi = AttackTrafficSimulateMultiproc(
-        #     121,
-        #     10,
-        #     samples,
-        #     process_params=process_params,
-        # )
-        # ret_dict = multi.process_batches()  # It must be a tuple!
-        
-        
+        if self.run_jobs:
+            job_name = "AttackTrafficSimulatJob"
+            process_params=(path_data, edge_data, traffic_data, self.select_strat, self.assign_strat)
+            ret_dict = self.initate_jobs(samples, process_params, job_name)
+        else:
+            # Start a multithreaded computation
+            multi = AttackTrafficSimulateMultiproc(
+                self.num_procs,
+                self.num_batches,
+                samples,
+                process_params=process_params,
+            )
+            ret_dict = multi.process_batches()  # It must be a tuple!
         result = [ret_dict[i] for i in range(len(ret_dict))]
         return (result,)
 

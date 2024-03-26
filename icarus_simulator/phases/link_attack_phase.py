@@ -36,6 +36,7 @@ class LinkAttackPhase(BasePhase):
         persist: bool,
         num_procs: int,
         num_batches: int,
+        run_jobs: bool,
         geo_constr_strat: BaseGeoConstraintStrat,
         filter_strat: BasePathFilteringStrat,
         feas_strat: BaseFeasStrat,
@@ -49,6 +50,7 @@ class LinkAttackPhase(BasePhase):
         super().__init__(read_persist, persist)
         self.num_procs = num_procs
         self.num_batches = num_batches
+        self.run_jobs = run_jobs
         self.geo_constr_strat: BaseGeoConstraintStrat = geo_constr_strat
         self.filter_strat: BasePathFilteringStrat = filter_strat
         self.feas_strat: BaseFeasStrat = feas_strat
@@ -87,26 +89,27 @@ class LinkAttackPhase(BasePhase):
         # Elaborate a list of the edges to be attacked
         edges = list(bw_data.keys())
         allowed_sources = self.geo_constr_strat.compute(grid_pos)
-        
-        job_name = "LinkAttackJob"
-        process_params=(self.filter_strat, self.feas_strat, self.optim_strat, path_data, edge_data, bw_data, allowed_sources,)
-        ret_tuple = (self.initate_jobs(edges, process_params, job_name),)
-        # # Start a multithreaded computation
-        # multi = AttackMultiproc(
-        #     self.num_procs,
-        #     self.num_batches,
-        #     edges,
-        #     process_params=(
-        #         self.filter_strat,
-        #         self.feas_strat,
-        #         self.optim_strat,
-        #         path_data,
-        #         edge_data,
-        #         bw_data,
-        #         allowed_sources,
-        #     ),
-        # )
-        # ret_tuple = (multi.process_batches(),)  # It must be a tuple!
+        if self.run_jobs:
+            job_name = "LinkAttackJob"
+            process_params=(self.filter_strat, self.feas_strat, self.optim_strat, path_data, edge_data, bw_data, allowed_sources,)
+            ret_tuple = (self.initate_jobs(edges, process_params, job_name),)
+        else:
+            # Start a multithreaded computation
+            multi = AttackMultiproc(
+                self.num_procs,
+                self.num_batches,
+                edges,
+                process_params=(
+                    self.filter_strat,
+                    self.feas_strat,
+                    self.optim_strat,
+                    path_data,
+                    edge_data,
+                    bw_data,
+                    allowed_sources,
+                ),
+            )
+            ret_tuple = (multi.process_batches(),)  # It must be a tuple!
         return ret_tuple
 
     def _check_result(self, result: Tuple[AttackData]) -> None:

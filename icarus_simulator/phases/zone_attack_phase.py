@@ -52,6 +52,7 @@ class ZoneAttackPhase(BasePhase):
         persist: bool,
         num_procs: int,
         num_batches: int,
+        run_jobs: bool,
         geo_constr_strat: BaseGeoConstraintStrat,
         zone_select_strat: BaseZoneSelectStrat,
         zone_build_strat: BaseZoneBuildStrat,
@@ -70,6 +71,7 @@ class ZoneAttackPhase(BasePhase):
         super().__init__(read_persist, persist)
         self.num_procs = num_procs
         self.num_batches = num_batches
+        self.run_jobs = run_jobs
         self.geo_constr_strat: BaseGeoConstraintStrat = geo_constr_strat
         self.select_strat: BaseZoneSelectStrat = zone_select_strat
         self.build_strat: BaseZoneBuildStrat = zone_build_strat
@@ -117,35 +119,36 @@ class ZoneAttackPhase(BasePhase):
         allowed_sources = self.geo_constr_strat.compute(grid_pos)
         # Select the centres of the zones to be disconnected
         zone_pairs = self.select_strat.compute(grid_pos)
-        
-        job_name = "ZoneAttackData"
-        process_params=(self.build_strat, self.edges_strat,
-                        self.bneck_strat, self.filter_strat,
-                        self.feas_strat, self.optim_strat, grid_pos,
-                        path_data, bw_data, edge_data, atk_data, allowed_sources,)
-        ret_tuple = (self.initate_jobs(zone_pairs, process_params, job_name),)
-        # # Start a multithreaded computation
-        # multi = ZoneAttackMultiproc(
-        #     self.num_procs,
-        #     self.num_batches,
-        #     zone_pairs,
-        #     process_params=(
-        #         self.build_strat,
-        #         self.edges_strat,
-        #         self.bneck_strat,
-        #         self.filter_strat,
-        #         self.feas_strat,
-        #         self.optim_strat,
-        #         grid_pos,
-        #         path_data,
-        #         bw_data,
-        #         edge_data,
-        #         atk_data,
-        #         allowed_sources,
-        #     ),
-        #     verbose=True,
-        # )
-        # ret_tuple = (multi.process_batches(),)  # It must be a tuple!
+        if self.run_jobs:
+            job_name = "ZoneAttackData"
+            process_params=(self.build_strat, self.edges_strat,
+                            self.bneck_strat, self.filter_strat,
+                            self.feas_strat, self.optim_strat, grid_pos,
+                            path_data, bw_data, edge_data, atk_data, allowed_sources,)
+            ret_tuple = (self.initate_jobs(zone_pairs, process_params, job_name),)
+        else:
+            # Start a multithreaded computation
+            multi = ZoneAttackMultiproc(
+                self.num_procs,
+                self.num_batches,
+                zone_pairs,
+                process_params=(
+                    self.build_strat,
+                    self.edges_strat,
+                    self.bneck_strat,
+                    self.filter_strat,
+                    self.feas_strat,
+                    self.optim_strat,
+                    grid_pos,
+                    path_data,
+                    bw_data,
+                    edge_data,
+                    atk_data,
+                    allowed_sources,
+                ),
+                verbose=True,
+            )
+            ret_tuple = (multi.process_batches(),)  # It must be a tuple!
         return ret_tuple
 
     def _check_result(self, result: Tuple[AttackData]) -> None:

@@ -46,6 +46,7 @@ class Logger(object):
     
 # Change these parameters to match your machine
 CORE_NUMBER = 16
+RUN_JOBS = True
 RESULTS_DIR = "results"
 OUTPUT_DIR = "outputs"
 LOGS_DIR = "logs"
@@ -95,6 +96,20 @@ def copy_files_with_subdirectories(paths_to_copy, destination_folder):
                     # Copy the file to the destination
                     shutil.copyfile(source_file, destination_file)
 
+def get_largest_numbered_folder(directory):
+    # Get list of all directories in the specified directory
+    directories = [d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))]
+
+    # Filter out non-numeric directories and convert the remaining ones to integers
+    numeric_directories = [int(d) for d in directories if d.isdigit()]
+
+    if numeric_directories:
+        # Return the maximum number
+        return max(numeric_directories)
+    else:
+        # If no numeric directories found, return None
+        return None
+    
 def copy_files(output_dir, conf_id, paths_to_copy, conf):
     new_dir_path = os.path.join(output_dir, str(conf_id))
     if not os.path.exists(new_dir_path):
@@ -133,11 +148,9 @@ def run_jobs():
     manager = JobManager(python_script_path, parent_path, env_path, temp_data_path, monitor_file_template, num_jobs, cpus_per_job, mem)
     manager.create_jobs()  
 
-
 def clean_paths():
     delete_files_in_directory("/home/roeeidan/icarus_framework/results")
-    delete_files_in_directory("/home/roeeidan/icarus_framework/icarus_simulator/temp_data")
-    
+    delete_files_in_directory("/home/roeeidan/icarus_framework/icarus_simulator/temp_data") 
     
 def prepare_system():
     from cancel_monitor_jobs import clear_jobs
@@ -179,8 +192,9 @@ def initialize_icarus(conf):
         rout_ph = RoutingPhase(
             True,
             True,
-            CORE_NUMBER,
-            2,
+            num_procs=CORE_NUMBER,
+            num_batches=3,
+            run_jobs=RUN_JOBS,
             rout_strat=get_strat("rout", conf),
             grid_in=GRID_POS,
             cov_in=COVERAGE,
@@ -191,8 +205,9 @@ def initialize_icarus(conf):
         edge_ph = EdgePhase(
             True,
             True,
-            CORE_NUMBER,
-            1,
+            num_procs=CORE_NUMBER,
+            num_batches=1,
+            run_jobs=RUN_JOBS,
             ed_strat=get_strat("edges", conf),
             paths_in=PATH_DATA,
             nw_in=SAT_NW,
@@ -216,8 +231,9 @@ def initialize_icarus(conf):
         latk_ph = LinkAttackPhase(
             True,
             True,
-            CORE_NUMBER,
-            3,
+            num_procs=CORE_NUMBER,
+            num_batches=3,
+            run_jobs=RUN_JOBS,
             geo_constr_strat=get_strat("atk_constr", conf),
             filter_strat=get_strat("atk_filt", conf),
             feas_strat=get_strat("atk_feas", conf),
@@ -232,8 +248,9 @@ def initialize_icarus(conf):
         zatk_ph = ZoneAttackPhase(
             True,
             True,
-            CORE_NUMBER,
-            4,
+            num_procs=CORE_NUMBER,
+            num_batches=4,
+            run_jobs=RUN_JOBS,
             geo_constr_strat=get_strat("atk_constr", conf),
             zone_select_strat=get_strat("zone_select", conf),
             zone_build_strat=get_strat("zone_build", conf),
@@ -264,6 +281,9 @@ def initialize_icarus(conf):
         sim_attack_traffic_ph = SimulatedAttackTrafficPhase(
             read_persist=True,
             persist=True,
+            num_procs=CORE_NUMBER,
+            num_batches=2,
+            run_jobs=RUN_JOBS,
             select_strat=get_strat("traffic_attack_select_simulation",conf),
             assign_strat=get_strat("traffic_routing_asg_simulation",conf),
             paths_in=PATH_DATA,
@@ -286,10 +306,10 @@ def main():
     paths_to_copy = [LOGS_DIR,RESULTS_DIR]
     original_stdout = sys.stdout
     original_stderr = sys.stderr
-    inital_start = 28
+    inital_start = get_largest_numbered_folder(get_largest_numbered_folder) + 1
     number_runs = 999
     for conf_id in range(inital_start, inital_start + number_runs):
-        print(f"current run out of {conf_id} {number_runs}")
+        print(f"current run out of {conf_id} {inital_start + number_runs}")
         try:
             clean_paths()
             # Repeat the simulation process for all configurations in the config file
@@ -309,13 +329,14 @@ def main():
             sys.stdout = original_stdout
             sys.stderr = original_stderr
             copy_files(output_dir, conf_id, paths_to_copy, conf)
-            os.remove(logger_name)
             clear_logs_in_directory(logs_dir)
         except Exception as e:
             print(f"error {e}", flush=True)
             sys.stdout.log.close()  # Close the log file associated with the logger
             sys.stdout = original_stdout
             sys.stderr = original_stderr
+            conf_id = conf_id - 1
+        os.remove(logger_name)
             
 
 # Execute on main
