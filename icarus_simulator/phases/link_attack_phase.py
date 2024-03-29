@@ -1,7 +1,7 @@
 #  2020 Tommaso Ciussani and Giacomo Giuliari
 
 from typing import List, Tuple
-
+import copy
 from icarus_simulator.phases.base_phase import BasePhase
 from icarus_simulator.strategies.atk_detect_optimisation.base_optim_strat import (
     BaseOptimStrat,
@@ -132,6 +132,8 @@ class AttackMultiproc(Multiprocessor):
             bw_data,
             allowed_sources,
         ) = params
+        feas_strat = copy.deepcopy(feas_strat)
+        feas_strat.empty_enviorment()
         # This method computes the attack phases.
         # A1 is comprised of all the previously done work until here.
         # A2 is instead irrelevant as there is no bneck choice.

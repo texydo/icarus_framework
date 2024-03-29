@@ -3,6 +3,8 @@ import random
 import numpy as np
 from math import ceil
 from typing import List, Optional, Tuple
+import gurobipy as gp
+from gurobipy import GRB
 
 from icarus_simulator.strategies.atk_feasibility_check.base_feas_strat import (
     BaseFeasStrat,
@@ -21,6 +23,7 @@ from icarus_simulator.utils import get_edges
 class LPFeasStrat(BaseFeasStrat):
     def __init__(self, **kwargs):
         super().__init__()
+        self.env = None
         if len(kwargs) > 0:
             pass  # Appease the unused param inspection
 
@@ -32,6 +35,23 @@ class LPFeasStrat(BaseFeasStrat):
     def param_description(self) -> None:
         return None
 
+    def create_environment(self):
+        """Initializes the Gurobi environment if it hasn't been created yet."""
+        if self.env is None:
+            self.env = gp.Env(empty=True)
+            self.env.setParam("OutputFlag", 0)
+            while True:
+                try:
+                    self.env.start()
+                    break
+                except gp.GurobiError as e:
+                    print("Gurobi error encountered:", e)
+    
+    def empty_enviorment(self):
+        if self.env is not None:
+            self.env.dispose()
+            self.env = None
+        
     # Important note: this only works for single-target attacks!
     def compute(
         self,
@@ -115,33 +135,34 @@ class LPFeasStrat(BaseFeasStrat):
         #     print("Error in executing command.")
         #     print("Error output:\n", result.stderr)
         # Prepare Gurobi problem -> we import gurobi here as not everybody may habve it installed!
-        import gurobipy as gp
-        from gurobipy import GRB
 
-        env = gp.Env(empty=True)
-        env.setParam("OutputFlag", 0)
-        # env.start()
-        import time
-        start_time = time.time()
+        # env = gp.Env(empty=True)
+        # env.setParam("OutputFlag", 0)
+        # # env.start()
+        # import time
+        # start_time = time.time()
         
-        counter = 0
-        while True:
-            try:
-                env.start()
-                break
-            except gp.GurobiError as e:
-                print("Gurobi error encountered:", e)
-                wait_time = random_wait()
-                time.sleep(wait_time)
-                counter += 1
-            except Exception as e:
-                print("Other error encountered:", e)
-                counter += 1
+        # counter = 0
+        # while True:
+        #     try:
+        #         env.start()
+        #         break
+        #     except gp.GurobiError as e:
+        #         print("Gurobi error encountered:", e)
+        #         wait_time = random_wait()
+        #         time.sleep(wait_time)
+        #         counter += 1
+        #     except Exception as e:
+        #         print("Other error encountered:", e)
+        #         counter += 1
 
-        if counter >= 1:
-            print(f"Failed times: {counter}")
-            print(f"Time: {time.time() - start_time}")
-        m = gp.Model("attack", env=env)
+        # if counter >= 1:
+        #     print(f"Failed times: {counter}")
+        #     print(f"Time: {time.time() - start_time}")
+        
+        self.create_environment()
+        
+        m = gp.Model("attack", env=self.env)
         x = m.addMVar(shape=len(directions), lb=0.0, name="x")
         m.setObjective(numpy_c @ x, GRB.MINIMIZE)  # @ is matrix product!
         # noinspection PyArgumentList
@@ -176,7 +197,7 @@ class LPFeasStrat(BaseFeasStrat):
                 flows = min(flows_per_pair, bw)
                 atk_flow_set.add((pair, flows))
                 bw -= flows
-
+        m.dispose()
         return (
             atk_flow_set,
             tot_needed,

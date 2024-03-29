@@ -163,7 +163,7 @@ def prepare_jobs():
     env_path = "/home/roeeidan/.conda/envs/icarus/bin/python"
     temp_data_path = "/home/roeeidan/icarus_framework/logs"
     monitor_file_template = "/home/roeeidan/icarus_framework/icarus_simulator/temp_data/run_X.txt"
-    num_jobs = 20
+    num_jobs = 40
     cpus_per_job = CORE_NUMBER
     mem = 120
 

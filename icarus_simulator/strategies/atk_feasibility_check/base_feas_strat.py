@@ -28,3 +28,7 @@ class BaseFeasStrat(BaseStrat):
         max_uplink_increase: int,
     ) -> Tuple[Optional[AtkFlowSet], int, int]:
         raise NotImplementedError
+
+    @abstractmethod
+    def empty_enviorment(self):
+        return None

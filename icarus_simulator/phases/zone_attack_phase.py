@@ -3,6 +3,7 @@
 import itertools
 from typing import List, Tuple
 from geopy.distance import great_circle
+import copy
 
 from icarus_simulator.phases.base_phase import BasePhase
 from icarus_simulator.strategies.base_strat import BaseStrat
@@ -183,7 +184,8 @@ class ZoneAttackMultiproc(Multiprocessor):
             atk_data,
             allowed_sources,
         ) = params
-
+        feas_strat = copy.deepcopy(feas_strat)
+        feas_strat.empty_enviorment()
         # Process the single sample
         zone1, zone2 = build_strat.compute(grid_pos, sample[0], sample[1])
 

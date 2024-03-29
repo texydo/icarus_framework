@@ -2,4 +2,8 @@
 Disuss wit hyuval and asaf regarding routing
 Discuss with yuval asaf how many zoneattacks to sample differently as there are quite alot and its huge
 
-write a main function that will create and run different simulations and store all the data properly
+Make it socket
+make paths for jobs better without my direct paths
+
+make the number of jobs sync in a single parameter
+add a location to dump error runs

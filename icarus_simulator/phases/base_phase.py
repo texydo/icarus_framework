@@ -29,7 +29,7 @@ class BasePhase:
     def __init__(self, read_persist: bool, persist: bool):
         self.read_persist: bool = read_persist
         self.persist: bool = persist
-        self.num_jobs = 20
+        self.num_jobs = 40
         self.temp_data_path = "icarus_simulator/temp_data"
 
     @property
