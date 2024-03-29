@@ -2,6 +2,18 @@ import socket
 import time
 import sys
 
+
+def recv_all(sock, n):
+    """Helper function to receive n bytes or return None if EOF is hit"""
+    data = bytearray()
+    while len(data) < n:
+        packet = sock.recv(n - len(data))
+        if not packet:
+            return None
+        data.extend(packet)
+    return data
+
+
 def client(job_numeric_id):
     while True:  # Infinite loop to keep trying to connect
         try:

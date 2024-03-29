@@ -168,7 +168,20 @@ def prepare_jobs():
     mem = 120
 
     manager = JobManager(python_script_path, parent_path, env_path, temp_data_path, monitor_file_template, num_jobs, cpus_per_job, mem)
-    manager.create_jobs()  
+    manager.create_jobs()
+
+def prepare_jobs_socket():
+    from job_manager_socket import JobManager
+    python_script_path = "/home/roeeidan/icarus_framework/task_monitor_socket.py"
+    parent_path = "/home/roeeidan/icarus_framework"
+    env_path = "/home/roeeidan/.conda/envs/icarus/bin/python"
+    log_data_path = "/home/roeeidan/icarus_framework/logs"
+    num_jobs = 16
+    cpus_per_job = 32
+    mem = 70
+
+    manager = JobManager(python_script_path, parent_path, env_path, log_data_path, num_jobs, cpus_per_job, mem)
+    manager.create_jobs()
 
 def clean_paths(list_of_directories):
     for directory in list_of_directories:
@@ -179,7 +192,7 @@ def prepare_system(logs_dir, paths_to_copy):
     clear_jobs()
     delete_files_in_directory(logs_dir)
     clean_paths(paths_to_copy)
-    prepare_jobs()
+    prepare_jobs_socket()
 
 def initialize_icarus(conf, core_number, run_jobs, result_dir):
     # SIMULATION: phase definition and final computation
@@ -339,7 +352,7 @@ def main(output_dir=OUTPUT_DIR, core_number=CORE_NUMBER, run_jobs=True):
     original_stdout = sys.stdout
     original_stderr = sys.stderr
     inital_start = get_largest_numbered_folder(output_dir) + 1
-    number_runs = 999
+    number_runs = 9999
     for conf_id in range(inital_start, inital_start + number_runs):
         print(f"current run out of {conf_id} {inital_start + number_runs}", flush=True)
         try:

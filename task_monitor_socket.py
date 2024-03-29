@@ -2,8 +2,8 @@ import sys
 
 import socket
 import pickle
-import portalocker
-
+import struct
+import time
 import asyncio
 from aiofiles import open as async_open
 
@@ -13,7 +13,7 @@ from icarus_simulator.job_process.routing_job import RouteJob
 from icarus_simulator.job_process.link_attack_job import LinkAttackJob
 from icarus_simulator.job_process.zone_attack_job import ZoneAttackJob
 
-
+import time
 # Define a mapping from job type names to the classes
 JOB_TYPE_TO_CLASS = {
     "BaseJob": BaseJob,
@@ -23,90 +23,77 @@ JOB_TYPE_TO_CLASS = {
     "ZoneAttackData": ZoneAttackJob,
 }
 
-def receive_all(conn):
-    data = b""
-    while True:
-        part = conn.recv(4096)  # Receive data in 4096-byte chunks
-        data += part
-        if len(part) < 4096:  # If less data than the chunk size is received, it's likely the end of the data
-            break
+def recv_all(sock, n):
+    """Helper function to receive n bytes or return None if EOF is hit"""
+    data = bytearray()
+    while len(data) < n:
+        packet = sock.recv(n - len(data))
+        if not packet:
+            return None
+        data.extend(packet)
     return data
 
+def receive_data_from_server(client_socket):
+    raw_msglen = recv_all(client_socket, 4)
+    if not raw_msglen:
+        print("Unable to receive the message length", flush=True)
+        return None
 
-def start_server(port=12345, host='0.0.0.0'):  # Listen on all network interfaces
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((host, port))
-        s.listen()
-        print(f"Server listening on {host}:{port}", flush=True)
-        while True:
-            conn, addr = s.accept()
-            with conn:
-                print(f"Connected by {addr}", flush=True)
-                data = receive_all(conn)
-                print(type(data))
-                print(f"len data {len(data)}", flush=True)
-                if data:
-                    try:
-                        job_class_name, data, params = pickle.loads(data)
-                        print(f"Executing job: {job_class_name}", flush=True)
-                        if job_class_name in JOB_TYPE_TO_CLASS:
-                            job_class = JOB_TYPE_TO_CLASS[job_class_name]
-                            job_object = job_class()
-                            output = job_object.run_multiprocessor(data, params)
-                            # serialized_output = pickle.dumps(output)  # Ensure output is serialized
-                            conn.sendall(output)
-                            print(f"Completed Job", flush=True)
-                        else:
-                            print(f"Unknown job class: {job_class_name}", flush=True)
-                            conn.sendall(pickle.dumps("Error: Unknown job class"))
-                    except Exception as e:
-                        print(f"Error during job execution: {e}")
-                        conn.sendall(pickle.dumps(f"Error during job execution: {e}"))
-                else:
-                    print("No data received.", flush=True)
-                    
+    msglen = struct.unpack('>I', raw_msglen)[0]
+    serialized_data = recv_all(client_socket, msglen)
+    if not serialized_data:
+        print("Failed to receive the full data", flush=True)
+        return None
 
-async def write_to_file(filename, data):
-    async with async_open(filename, "a") as f:
-        await f.write(data)
-        
-def write_ip(port_num, update_ip_file):
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # Deserialize the received data
     try:
-        # Doesn't even have to be reachable
-        s.connect(('10.255.255.255', 1))
-        IP = s.getsockname()[0]
-    except Exception:
-        IP = '127.0.0.1'
-    finally:
-        s.close()
-    entry = f"{IP}:{port_num}\n"
-    asyncio.run(write_to_file(update_ip_file, entry))
-    # # Append the entry to the file with locking
-    # with open(update_ip_file, "a") as f:
-    #     portalocker.lock(f, portalocker.LOCK_EX)
-    #     f.write(entry)
+        data = pickle.loads(serialized_data)
+    except (pickle.PickleError, EOFError) as e:
+        print(f"Error deserializing data: {e}", flush=True)
+        return None
 
-def get_free_port(job_index, start_port=9980, end_port=65535):
-    job_index_str = f"0{job_index}"  # Format job_index as required
-    
-    for port in range(start_port, end_port + 1):
-        if str(port).endswith(job_index_str):
-            try:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                    sock.bind(('0.0.0.0', port))
-                    # If bind is successful, return the port
-                    return port
-            except OSError:
-                # This port is already in use, continue checking
-                continue
+    return data
 
-    raise RuntimeError(f"No free port ending with '{job_index_str}' found between {start_port} and {end_port}.")
+def client():
+    while True:
+        try:
+            while True:
+                try:
+                    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    client_socket.connect(('132.72.65.234', 40900))
+                    print("Connected to server.", flush=True)
+                    break
+                except ConnectionRefusedError:
+                    # print("Connection refused by the server. Retrying in 0.3 seconds...")
+                    time.sleep(0.3)
+            start_time = time.time()
+            job_class_name, data, params = receive_data_from_server(client_socket)
+            print(f"Getting Data time took for {job_class_name} was {time.time()-start_time}", flush=True)
+            output = calc_process(job_class_name, data, params)
+            result_data = pickle.dumps(output)
+            client_socket.sendall(len(result_data).to_bytes(4, 'big'))
+            client_socket.sendall(result_data)
+            print(f"Total time took of {job_class_name} was {time.time()-start_time}", flush=True)
+        except Exception as e:
+            print(f"An error occurred: {e}", flush=True)
+
+
+        
+        
+def calc_process(job_class_name, data, params):
+    output = None
+    print(f"Executing job: {job_class_name}", flush=True)
+    if job_class_name in JOB_TYPE_TO_CLASS:
+        job_class = JOB_TYPE_TO_CLASS[job_class_name]
+        job_object = job_class()
+        output = job_object.run_multiprocessor_server(data, params)
+        # serialized_output = pickle.dumps(output)  # Ensure output is serialized
+        print(f"Completed Job", flush=True)
+    else:
+        print(f"Unknown job class: {job_class_name}", flush=True)
+    return output
 
 
 if __name__ == "__main__":
-    job_index = sys.argv[1]
-    update_ip_file = sys.argv[2]
-    port_num = get_free_port(job_index)
-    write_ip(port_num, update_ip_file)
-    start_server(port_num)
+    # server_ip = sys.argv[1]
+    client()

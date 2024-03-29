@@ -17,7 +17,7 @@ from icarus_simulator.structure_definitions import (
 
 
 class RouteJob(BaseJob):
-    def run_multiprocessor(self, data_path, process_params_path, output_path):
+    def run_multiprocessor(self, data_path, process_params_path, output_path= ""):
         # Deserialize the input data
         with open(data_path, 'rb') as data_file:
             pairs = pickle.load(data_file)
@@ -29,6 +29,22 @@ class RouteJob(BaseJob):
         # Instantiate RoutingMultiproc with deserialized data and parameters
         multi = RoutingMultiproc(
             num_procs=self.num_procs,
+            num_batches=2,
+            samples=pairs,
+            process_params=(grid, network, coverage, rout_strat),
+        )
+
+        # Process batches and store the results
+        result = multi.process_batches()
+        
+        with open(output_path, 'wb') as output_file:
+            pickle.dump(result, output_file)
+            
+    def run_multiprocessor_server(self, data, process_params):
+        pairs = data
+        grid, network, coverage, rout_strat = process_params
+        multi = RoutingMultiproc(
+            num_procs=self.num_procs,
             num_batches=self.num_batches,
             samples=pairs,
             process_params=(grid, network, coverage, rout_strat),
@@ -36,8 +52,7 @@ class RouteJob(BaseJob):
 
         # Process batches and store the results
         result = multi.process_batches()
-        with open(output_path, 'wb') as output_file:
-            pickle.dump(result, output_file)
+        return result
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:

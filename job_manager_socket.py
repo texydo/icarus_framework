@@ -2,12 +2,11 @@ import os
 import subprocess
 
 class JobManager:
-    def __init__(self, python_script_path, parent_path, env_path, log_data_path, ip_file, num_jobs, cpus_per_job, mem):
+    def __init__(self, python_script_path, parent_path, env_path, log_data_path, num_jobs, cpus_per_job, mem):
         self.python_script_path = python_script_path
         self.parent_path = parent_path
         self.env_path = env_path
         self.log_data_path = log_data_path
-        self.ip_file = ip_file
         self.num_jobs = num_jobs
         self.cpus_per_job = cpus_per_job
         self.mem = mem
@@ -24,17 +23,11 @@ class JobManager:
             script_file.write(f"#SBATCH --output={os.path.join(self.log_data_path, f'%j_job_output_{job_index}.txt')}\n")
             script_file.write(f"#SBATCH --mem={self.mem}G\n")
             script_file.write(f"export PYTHONPATH={self.parent_path}:$PYTHONPATH\n")
-            script_file.write(f"{self.env_path} {self.python_script_path} {job_index} {self.ip_file}\n")
+            script_file.write(f"{self.env_path} {self.python_script_path}\n")
         return job_script_name
 
-    def delete_ip_file(self):
-        # Check if the file exists
-        if os.path.exists(self.ip_file):
-            # Delete the file
-            os.remove(self.ip_file)
         
     def create_jobs(self):
-        self.delete_ip_file()
         for job_index in range(self.num_jobs):
             job_script_name = self.create_job_script(job_index)
             self.job_scripts.append(job_script_name)
@@ -58,10 +51,9 @@ if __name__ == "__main__":
     parent_path = "/home/roeeidan/icarus_framework"
     env_path = "/home/roeeidan/.conda/envs/icarus/bin/python"
     log_data_path = "/home/roeeidan/icarus_framework/logs"
-    ip_file = "/home/roeeidan/icarus_framework/ip.txt"
-    num_jobs = 20
-    cpus_per_job = 16
-    mem = 120
+    num_jobs = 2
+    cpus_per_job = 100
+    mem = 70
 
-    manager = JobManager(python_script_path, parent_path, env_path, log_data_path, ip_file, num_jobs, cpus_per_job, mem)
+    manager = JobManager(python_script_path, parent_path, env_path, log_data_path, num_jobs, cpus_per_job, mem)
     manager.create_jobs()

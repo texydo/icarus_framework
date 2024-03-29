@@ -32,7 +32,7 @@ class EdgeJob(BaseJob):
         # Instantiate EdgeMultiproc with deserialized data and parameters
         multi = EdgeMultiproc(
             num_procs=self.num_procs,  # Use the inherited num_procs value from BaseJob
-            num_batches=self.num_batches,  # Use the inherited num_batches value from BaseJob
+            num_batches=1,  # Use the inherited num_batches value from BaseJob
             samples=all_paths,
             process_params=(ed_strat,),
         )

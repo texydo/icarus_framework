@@ -15,6 +15,10 @@ import os
 import time
 import pickle
 
+import socket
+from multiprocessing import Process, Manager
+import struct
+
 from abc import abstractmethod
 from typing import List, Any, Tuple
 from compress_pickle import compress_pickle
@@ -29,8 +33,12 @@ class BasePhase:
     def __init__(self, read_persist: bool, persist: bool):
         self.read_persist: bool = read_persist
         self.persist: bool = persist
-        self.num_jobs = 40
+        self.num_jobs = 16
         self.temp_data_path = "icarus_simulator/temp_data"
+        self.run_server = False
+        self.port = 40900
+        self.shared_dict = Manager().dict()
+        self.server_socket = None
 
     @property
     def input_properties(self) -> List[Pname]:
@@ -144,11 +152,90 @@ class BasePhase:
                 
     def initate_jobs(self, data, process_params, job_name):
         data_chunks = [data[i::self.num_jobs] for i in range(self.num_jobs)]        
-        self.serialize_data(process_params, f"params.pkl")
-        for i, chunk in enumerate(data_chunks):
-            self.serialize_data(chunk, f"data_{i}.pkl")
-            self.creat_run_file(i, job_name)
-        self.wait_for_jobs_completion()
-        results = self.aggregate_results()
-        self.cleanup()
+        if self.run_server:
+            start_time = time.time()
+            try:
+                data_list = [(job_name, chunk, process_params) for chunk in data_chunks]
+                self.server(data_list)        
+                print(f"{self.name} computed computed AAAAA in {time.time() - start_time}")
+                results = self.aggregate_results_socket()
+                
+            except Exception as inner_error:
+                if self.server_socket is not None:
+                    self.server_socket.close()
+                raise RuntimeError("An error occurred") from inner_error
+        else:
+            self.serialize_data(process_params, f"params.pkl")
+            for i, chunk in enumerate(data_chunks):
+                self.serialize_data(chunk, f"data_{i}.pkl")
+                self.creat_run_file(i, job_name)
+            self.wait_for_jobs_completion()
+            results = self.aggregate_results()
+            self.cleanup()
         return results
+    
+    def aggregate_results_socket(self):
+        aggregated_results = {}
+        for job_results in self.shared_dict:
+            aggregated_results.update(self.shared_dict[job_results])
+        self.shared_dict = {}
+        return aggregated_results
+    
+    def server(self, data_list):
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_socket.bind(('0.0.0.0', self.port))
+        self.server_socket.listen(50)
+        print("Server listening on port 40900...", flush=True)
+
+        processes = []  # List to hold references to the client processes
+        counter = 0
+        try:
+            for data_part in data_list:
+                # print("Waiting for a client connection...")
+                client_sock, client_addr = self.server_socket.accept()
+                # print(f"Accepted connection from {client_addr}")
+                client_process = Process(target=self.handle_client, args=(client_sock, client_addr, data_part, counter))
+                client_process.start()
+                processes.append(client_process)  # Store the reference to the client process
+                counter += 1
+
+            # Wait for all client processes to complete
+            for p in processes:
+                p.join()
+        finally:
+            self.server_socket.close()
+            self.server_socket = None
+    
+    def recv_all(self, sock, n):
+        """Helper function to receive n bytes or return None if EOF is hit"""
+        data = bytearray()
+        while len(data) < n:
+            packet = sock.recv(n - len(data))
+            if not packet:
+                return None
+            data.extend(packet)
+        return data
+    
+    def receive_data_from_client(self, client_socket):
+        """Read data sent by the client"""
+        raw_msglen = self.recv_all(client_socket, 4)
+        if not raw_msglen:
+            # print("Unable to receive the message length from the client")
+            return None
+
+        msglen = struct.unpack('>I', raw_msglen)[0]
+        serialized_data = self.recv_all(client_socket, msglen)
+        data = pickle.loads(serialized_data)
+        return data
+    
+    def handle_client(self, client_socket: socket, client_address, data_to_send, id):
+        # print(f"Sending data to {client_address}")
+        
+        serialized_data = pickle.dumps(data_to_send)
+        client_socket.sendall(len(serialized_data).to_bytes(4, 'big'))
+        client_socket.sendall(serialized_data)
+
+        # Read data sent by the client
+        self.shared_dict[id] = self.receive_data_from_client(client_socket)
+        # Close the client socket
+        client_socket.close()

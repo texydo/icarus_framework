@@ -113,23 +113,19 @@ class BasePhase:
         with open(file_path, 'w') as file:
             file.write(phase_name)
         
-    def aggregate_results(self):
+    def aggregate_results_socket(self):
         aggregated_results = {}
-        for i in range(self.num_jobs):
-            output_path = os.path.join(self.temp_data_path, f"output_{i}.pkl")
-            with open(output_path, 'rb') as file:
-                job_results = pickle.load(file)
-                aggregated_results.update(job_results)
+        for job_results in self.shared_list:
+            result_data = pickle.load(job_results)
+            aggregated_results.update(result_data)
         return aggregated_results
 
                 
     def initate_jobs(self, data, process_params, job_name):
         data_chunks = [data[i::self.num_jobs] for i in range(self.num_jobs)]        
-        self.serialize_data(process_params, f"params.pkl")
-        for i, chunk in enumerate(data_chunks):
-            self.serialize_data(chunk, f"data_{i}.pkl")
-            self.creat_run_file(i, job_name)
-        results = self.aggregate_results()
+        data_list = [(job_name, chunk, process_params) for chunk in data_chunks]
+        self.server(data_list)        
+        results = self.aggregate_results_socket()
         return results
     
     def server(self, data_list):
