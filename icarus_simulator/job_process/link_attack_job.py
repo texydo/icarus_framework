@@ -47,7 +47,29 @@ class LinkAttackJob(BaseJob):
         result = multi.process_batches()
         with open(output_path, 'wb') as output_file:
             pickle.dump(result, output_file)
+            
+    def run_multiprocessor_server(self, data, process_params):
+        edges = data
+        filter_strat, feas_strat, optim_strat, path_data, edge_data, bw_data, allowed_sources = process_params
+        multi = AttackMultiproc(
+            num_procs=self.num_procs,
+            num_batches=self.num_batches, 
+            samples=edges,
+            process_params=(
+                filter_strat,
+                feas_strat,
+                optim_strat,
+                path_data,
+                edge_data,
+                bw_data,
+                allowed_sources,
+            ),
+        )
 
+        # Process batches and store the results
+        result = multi.process_batches()
+        return result
+    
 if __name__ == "__main__":
     if len(sys.argv) != 4:
         print("Usage: script.py data_file_path process_params_file_path output_file_path")

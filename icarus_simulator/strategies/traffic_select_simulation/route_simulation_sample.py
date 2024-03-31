@@ -52,7 +52,7 @@ class RandomTrafficSelectStrat(BaseBwSelectSimulation):
         
     def compute(self, grid_pos: GridPos, path_data: PathData) -> List[PathIdCost]:
         # Sample communication pairs
-        random.seed("BGU")
+        # random.seed("BGU")
         samples = random.choices(
             list(grid_pos.keys()),
             [val.weight for val in grid_pos.values()],

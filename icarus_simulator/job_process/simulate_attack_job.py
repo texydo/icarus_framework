@@ -38,6 +38,20 @@ class AttackTrafficSimulatJob(BaseJob):
         result = multi.process_batches()
         with open(output_path, 'wb') as output_file:
             pickle.dump(result, output_file)
+            
+    def run_multiprocessor_server(self, data, process_params):
+        samples = data
+        path_data, edge_data, traffic_data, select_strat, assign_strat = process_params
+        multi = AttackTrafficSimulateMultiproc(
+            num_procs=self.num_procs,
+            num_batches=self.num_batches,
+            samples=samples,
+            process_params=(path_data, edge_data, traffic_data, select_strat, assign_strat),
+        )
+
+        # Process batches and store the results
+        result = multi.process_batches()
+        return result
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:

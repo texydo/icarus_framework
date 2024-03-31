@@ -53,6 +53,33 @@ class ZoneAttackJob(BaseJob):
         result = multi.process_batches()
         with open(output_path, 'wb') as output_file:
             pickle.dump(result, output_file)
+            
+    def run_multiprocessor_server(self, data, process_params):
+        zone_pairs = data
+        build_strat, edges_strat, bneck_strat, filter_strat, feas_strat, optim_strat, grid_pos, path_data, bw_data, edge_data, atk_data, allowed_sources = process_params
+        multi = ZoneAttackMultiproc(
+            num_procs=self.num_procs,
+            num_batches=self.num_batches,
+            samples=zone_pairs,
+            process_params=(
+                build_strat,
+                edges_strat,
+                bneck_strat,
+                filter_strat,
+                feas_strat,
+                optim_strat,
+                grid_pos,
+                path_data,
+                bw_data,
+                edge_data,
+                atk_data,
+                allowed_sources,
+            ),
+        )
+
+        # Process batches and store the results
+        result = multi.process_batches()
+        return result
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:

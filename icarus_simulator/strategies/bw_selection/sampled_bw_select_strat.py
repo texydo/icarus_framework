@@ -27,7 +27,7 @@ class SampledBwSelectStrat(BaseBwSelectStrat):
         return f"{self.sampled_quanta}"
 
     def compute(self, grid_pos: GridPos, path_data: PathData) -> List[PathId]:
-        random.seed("ETHZ")
+        # random.seed("ETHZ")
         # Sample communication pairs
         samples = random.choices(
             list(grid_pos.keys()),

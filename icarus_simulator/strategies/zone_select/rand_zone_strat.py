@@ -25,7 +25,7 @@ class RandZoneStrat(BaseZoneSelectStrat):
         return f"{self.samples}"
 
     def compute(self, grid_pos: GridPos) -> List[Tuple[int, int]]:
-        random.seed("Icarus")
+        # random.seed("Icarus")
         indices, locs, grid_pts = [], set(), list(grid_pos.keys())
         for i in range(self.samples):
             loc1, loc2 = tuple(random.sample(grid_pts, 2))
