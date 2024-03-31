@@ -32,6 +32,10 @@ from sat_plotter.stat_plot_builder import StatPlotBuilder
 from configuration import CONFIG, parse_config, get_strat, get_random_dict
 
 import sys
+from job_manager import JobManager, JobManagerSocket
+
+from cancel_monitor_jobs import clear_jobs
+
 
 class Logger(object):
     def __init__(self, filename="Default.log"):
@@ -156,31 +160,26 @@ def create_temp_subdirectory():
     
     return results_subdirectory_path
             
-def prepare_jobs():
-    from job_manager import JobManager
-    python_script_path = "/home/roeeidan/icarus_framework/task_monitor.py"
-    parent_path = "/home/roeeidan/icarus_framework"
-    env_path = "/home/roeeidan/.conda/envs/icarus/bin/python"
-    temp_data_path = "/home/roeeidan/icarus_framework/logs"
-    monitor_file_template = "/home/roeeidan/icarus_framework/icarus_simulator/temp_data/run_X.txt"
+def prepare_jobs(core_number= CORE_NUMBER, with_socket=True):
+    icarus_directory = os.getcwd()
+    python_script_path = os.path.join(icarus_directory, "task_monitor.py")
+    parent_path = icarus_directory
+    env_path = sys.executable
+    log_data_path = os.path.join(icarus_directory, "logs")
+    monitor_file_template = os.path.join(icarus_directory, "icarus_simulator/temp_data/run_X.txt")
+    # from job_manager import JobManager
+    # python_script_path = "/home/roeeidan/icarus_framework/task_monitor.py"
+    # parent_path = "/home/roeeidan/icarus_framework"
+    # env_path = "/home/roeeidan/.conda/envs/icarus/bin/python"
+    # log_data_path = "/home/roeeidan/icarus_framework/logs"
+    # monitor_file_template = "/home/roeeidan/icarus_framework/icarus_simulator/temp_data/run_X.txt"
     num_jobs = 40
-    cpus_per_job = CORE_NUMBER
+    cpus_per_job = core_number
     mem = 120
-
-    manager = JobManager(python_script_path, parent_path, env_path, temp_data_path, monitor_file_template, num_jobs, cpus_per_job, mem)
-    manager.create_jobs()
-
-def prepare_jobs_socket():
-    from job_manager_socket import JobManager
-    python_script_path = "/home/roeeidan/icarus_framework/task_monitor_socket.py"
-    parent_path = "/home/roeeidan/icarus_framework"
-    env_path = "/home/roeeidan/.conda/envs/icarus/bin/python"
-    log_data_path = "/home/roeeidan/icarus_framework/logs"
-    num_jobs = 16
-    cpus_per_job = 32
-    mem = 70
-
-    manager = JobManager(python_script_path, parent_path, env_path, log_data_path, num_jobs, cpus_per_job, mem)
+    if with_socket:
+        manager = JobManagerSocket(python_script_path, parent_path, env_path, log_data_path, num_jobs, cpus_per_job, mem)
+    else:
+        manager = JobManager(python_script_path, parent_path, env_path, log_data_path, monitor_file_template, num_jobs, cpus_per_job, mem)
     manager.create_jobs()
 
 def clean_paths(list_of_directories):
@@ -188,11 +187,10 @@ def clean_paths(list_of_directories):
         delete_files_in_directory(directory)
     
 def prepare_system(logs_dir, paths_to_copy):
-    from cancel_monitor_jobs import clear_jobs
     clear_jobs()
     delete_files_in_directory(logs_dir)
     clean_paths(paths_to_copy)
-    prepare_jobs_socket()
+    prepare_jobs()
 
 def initialize_icarus(conf, core_number, run_jobs, result_dir):
     # SIMULATION: phase definition and final computation
@@ -389,7 +387,6 @@ def main(output_dir=OUTPUT_DIR, core_number=CORE_NUMBER, run_jobs=True):
 
 # Execute on main
 if __name__ == "__main__":
-    
     if len(sys.argv) == 1:
         main()
     else:
