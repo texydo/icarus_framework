@@ -7,7 +7,7 @@
 cleanup() {
     echo "Performing cleanup tasks..."
     # Call the cancel_monitor_jobs.py script with the same environment
-    /sise/home/roeeidan/.conda/envs/icarus/bin/python /sise/home/roeeidan/icarus_framework/cancel_monitor_jobs.py
+    /sise/home/roeeidan/.conda/envs/icarus/bin/python /sise/home/roeeidan/icarus_framework/multi_job_managment/cancel_monitor_jobs.py
     echo "Cleanup complete."
 }
 
@@ -15,4 +15,4 @@ cleanup() {
 trap 'cleanup' EXIT
 
 
-/home/roeeidan/.conda/envs/icarus/bin/python /home/roeeidan/icarus_framework/main.py
+/home/roeeidan/.conda/envs/icarus/bin/python /home/roeeidan/icarus_framework/main.py /home/roeeidan/icarus_framework/configurations/config_jobs_no_socket.json

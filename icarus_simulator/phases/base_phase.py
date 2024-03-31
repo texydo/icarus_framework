@@ -34,8 +34,8 @@ class BasePhase:
         self.read_persist: bool = read_persist
         self.persist: bool = persist
         self.num_jobs = 16
-        self.temp_data_path = "icarus_simulator/temp_data"
         self.run_server = False
+        self.temp_data_path = "icarus_simulator/temp_data"
         self.port = 40900
         self.shared_dict = Manager().dict()
         self.server_socket = None

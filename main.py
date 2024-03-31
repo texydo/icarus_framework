@@ -29,26 +29,14 @@ from icarus_simulator.phases import *
 from sat_plotter import GeoPlotBuilder
 from sat_plotter.stat_plot_builder import StatPlotBuilder
 
-from configuration import CONFIG, parse_config, get_strat, get_random_dict
+from configurations.icarus_configuration import CONFIG, parse_config, get_strat, get_random_dict
 
 import sys
+
 from multi_job_managment.job_manager import JobManager, JobManagerSocket
 from multi_job_managment.cancel_monitor_jobs import clear_jobs
-
-
-class Logger(object):
-    def __init__(self, filename="Default.log"):
-        self.terminal = sys.stdout  # Save a reference to the original standard output
-        self.log = open(filename, "a")  # Open a log file in append mode
-
-    def write(self, message):
-        self.terminal.write(message)  # Write the message to the standard output
-        self.log.write(message)  # Write the message to the log file
-
-    def flush(self):  # Needed for Python 3 compatibility
-        # This flush method is needed for python 3 compatibility.
-        # This handles the implicit flush command by file objects.
-        pass
+from multi_job_managment.logger import Logger
+from main_utils import *
     
 # Change these parameters to match your machine
 CORE_NUMBER = 16
@@ -56,141 +44,18 @@ RESULTS_DIR = "results"
 OUTPUT_DIR = "outputs"
 LOGS_DIR = "logs"
 TEMP_DATA = "icarus_simulator/temp_data"
-
-def delete_files_in_directory(directory_path):
-    directory_path = os.path.abspath(directory_path)
-    # Check if the directory exists
-    if not os.path.isdir(directory_path):
-        print(f"The directory {directory_path} does not exist.", flush=True)
-        return
-
-    # Iterate over all files in the directory and remove them
-    for filename in os.listdir(directory_path):
-        file_path = os.path.join(directory_path, filename)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-                # print(f"Deleted {file_path}")
-            else:
-                print(f"Skipped {file_path} (Not a file)", flush=True)
-        except Exception as e:
-            print(f"Failed to delete {file_path}. Reason: {e}", flush=True)
-
-def copy_files_with_subdirectories(paths_to_copy, destination_folder):
-    for source_path in paths_to_copy:
-        # Get the last component of the source path
-        _, last_component = os.path.split(source_path)
-        # Construct the destination path
-        destination_path = os.path.join(destination_folder, last_component)
-        source_path = os.path.abspath(source_path)
-        # If the source path is a file, copy it directly
-        if os.path.isfile(source_path):
-            # Create the directory structure if it doesn't exist
-            os.makedirs(destination_folder, exist_ok=True)
-            # Copy the file to the destination
-            shutil.copyfile(source_path, destination_path)
-        # If the source path is a directory, copy its contents recursively
-        elif os.path.isdir(source_path):
-            # Copy the directory contents to the destination
-            for root, _, files in os.walk(source_path):
-                for file in files:
-                    source_file = os.path.join(root, file)
-                    # Construct the destination file path
-                    destination_file = os.path.join(destination_path, os.path.relpath(source_file, source_path))
-                    # Create the directory structure if it doesn't exist
-                    os.makedirs(os.path.dirname(destination_file), exist_ok=True)
-                    # Copy the file to the destination
-                    shutil.copyfile(source_file, destination_file)
-
-def get_largest_numbered_folder(directory):
-    # Get list of all directories in the specified directory
-    directories = [d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))]
-
-    # Filter out non-numeric directories and convert the remaining ones to integers
-    numeric_directories = [int(d) for d in directories if d.isdigit()]
-
-    if numeric_directories:
-        # Return the maximum number
-        return max(numeric_directories)
-    else:
-        # If no numeric directories found, return None
-        return 0
     
-def copy_files(output_dir, conf_id, paths_to_copy, conf):
-    output_dir = os.path.abspath(output_dir)
-    new_dir_path = os.path.join(output_dir, str(conf_id))
-    if not os.path.exists(new_dir_path):
-        os.makedirs(new_dir_path)
-    copy_files_with_subdirectories(paths_to_copy, new_dir_path)
-    file_path = os.path.join(new_dir_path, "conf.pkl")
-    with open(file_path, 'wb') as file:
-        pickle.dump(conf, file)
-
-def clear_logs_in_directory(directory):
-    directory = os.path.abspath(directory)
-    if not os.path.isdir(directory):
-        return  # If the directory is not valid, exit the function
-
-    log_files = [os.path.join(directory, file) for file in os.listdir(directory) if file.endswith('.log')]
-    import fcntl
-    for log_file in log_files:
-        with open(log_file, 'a+') as file:
-            try:
-                fcntl.flock(file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-                file.truncate(0)  # Clear the file
-                fcntl.flock(file.fileno(), fcntl.LOCK_UN)
-            except BlockingIOError:
-                print(f"File '{log_file}' is locked by another process.")
-
-def create_temp_subdirectory():
-    # Get the path to the temporary directory
-    temp_dir = tempfile.gettempdir()
-    
-    # Generate a random folder name
-    random_folder_name = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-    
-    # Create the random folder in the temporary directory
-    random_folder_path = os.path.join(temp_dir, random_folder_name)
-    os.makedirs(random_folder_path)
-    
-    # Create a subdirectory named "results" inside the random folder
-    results_subdirectory_path = os.path.join(random_folder_path, "results")
-    os.makedirs(results_subdirectory_path)
-    
-    return results_subdirectory_path
-            
-def prepare_jobs(core_number= CORE_NUMBER, with_socket=True):
-    icarus_directory = os.getcwd()
-    parent_path = icarus_directory
-    env_path = sys.executable
-    log_data_path = os.path.join(icarus_directory, "logs")
-    monitor_file_template = os.path.join(icarus_directory, "icarus_simulator/temp_data/run_X.txt")
-    num_jobs = 40
-    cpus_per_job = core_number
-    mem = 120
-    if with_socket:
-        python_script_path = os.path.join(icarus_directory, "multi_job_managment/task_monitor_socket.py")
-        manager = JobManagerSocket(python_script_path, parent_path, env_path, log_data_path, num_jobs, cpus_per_job, mem)
-    else:
-        python_script_path = os.path.join(icarus_directory, "multi_job_managment/task_monitor.py")
-        manager = JobManager(python_script_path, parent_path, env_path, log_data_path, monitor_file_template, num_jobs, cpus_per_job, mem)
-    manager.create_jobs()
-
-def clean_paths(list_of_directories):
-    for directory in list_of_directories:
-        delete_files_in_directory(directory)
-    
-def prepare_system(logs_dir, paths_to_copy):
+def prepare_system(logs_dir, paths_to_copy, core_number,num_jobs, with_socket):
     clear_jobs()
     delete_files_in_directory(logs_dir)
     clean_paths(paths_to_copy)
-    prepare_jobs()
+    prepare_jobs(core_number, num_jobs, with_socket)
 
-def initialize_icarus(conf, core_number, run_jobs, result_dir):
+def initialize_icarus(conf, core_number, run_jobs,num_jobs, run_server, result_dir):
     # SIMULATION: phase definition and final computation
         lsn_ph = LSNPhase(
-            True,
-            True,
+            read_persist=True,
+            persist=True,
             lsn_strat=get_strat("lsn", conf),
             lsn_out=SAT_POS,
             nw_out=SAT_NW,
@@ -198,8 +63,8 @@ def initialize_icarus(conf, core_number, run_jobs, result_dir):
         )
 
         grid_ph = GridPhase(
-            True,
-            True,
+            read_persist=True,
+            persist=True,
             grid_strat=get_strat("grid", conf),
             weight_strat=get_strat("gweight", conf),
             grid_out=FULL_GRID_POS,
@@ -207,8 +72,8 @@ def initialize_icarus(conf, core_number, run_jobs, result_dir):
         )
 
         cov_ph = CoveragePhase(
-            True,
-            True,
+            read_persist=True,
+            persist=True,
             cov_strat=get_strat("cover", conf),
             sat_in=SAT_POS,
             grid_in=FULL_GRID_POS,
@@ -217,9 +82,11 @@ def initialize_icarus(conf, core_number, run_jobs, result_dir):
         )
 
         rout_ph = RoutingPhase(
-            True,
-            True,
+            read_persist=True,
+            persist=True,
+            num_jobs=num_jobs,
             num_procs=core_number,
+            run_server = run_server,
             num_batches=3,
             run_jobs=run_jobs,
             rout_strat=get_strat("rout", conf),
@@ -230,9 +97,11 @@ def initialize_icarus(conf, core_number, run_jobs, result_dir):
         )
 
         edge_ph = EdgePhase(
-            True,
-            True,
+            read_persist=True,
+            persist=True,
+            num_jobs=num_jobs,
             num_procs=core_number,
+            run_server = run_server,
             num_batches=1,
             run_jobs=run_jobs,
             ed_strat=get_strat("edges", conf),
@@ -245,8 +114,8 @@ def initialize_icarus(conf, core_number, run_jobs, result_dir):
 
         # FULL_GRID_POS is passed for consistency with other experiments, where the coverage grid filtering is different
         bw_ph = TrafficPhase(
-            True,
-            True,
+            read_persist=True,
+            persist=True,
             select_strat=get_strat("bw_sel", conf),
             assign_strat=get_strat("bw_asg", conf),
             grid_in=FULL_GRID_POS,
@@ -256,9 +125,11 @@ def initialize_icarus(conf, core_number, run_jobs, result_dir):
         )
 
         latk_ph = LinkAttackPhase(
-            True,
-            True,
+            read_persist=True,
+            persist=True,
+            num_jobs=num_jobs,
             num_procs=core_number,
+            run_server = run_server,
             num_batches=3,
             run_jobs=run_jobs,
             geo_constr_strat=get_strat("atk_constr", conf),
@@ -273,9 +144,11 @@ def initialize_icarus(conf, core_number, run_jobs, result_dir):
         )
 
         zatk_ph = ZoneAttackPhase(
-            True,
-            True,
+            read_persist=True,
+            persist=True,
+            num_jobs=num_jobs,
             num_procs=core_number,
+            run_server = run_server,
             num_batches=4,
             run_jobs=run_jobs,
             geo_constr_strat=get_strat("atk_constr", conf),
@@ -308,7 +181,9 @@ def initialize_icarus(conf, core_number, run_jobs, result_dir):
         sim_attack_traffic_ph = SimulatedAttackTrafficPhase(
             read_persist=True,
             persist=True,
+            num_jobs=num_jobs,
             num_procs=core_number,
+            run_server = run_server,
             num_batches=2,
             run_jobs=run_jobs,
             select_strat=get_strat("traffic_attack_select_simulation",conf),
@@ -326,7 +201,7 @@ def initialize_icarus(conf, core_number, run_jobs, result_dir):
         )
         return sim 
     
-def main(output_dir=OUTPUT_DIR, core_number=CORE_NUMBER, run_jobs=True):
+def main(run_jobs, core_number, output_dir, num_jobs, run_with_socket):
     output_dir = output_dir
     core_number = core_number
     if run_jobs:
@@ -334,17 +209,19 @@ def main(output_dir=OUTPUT_DIR, core_number=CORE_NUMBER, run_jobs=True):
         result_dir = RESULTS_DIR
         paths_to_copy = [logs_dir, result_dir]
         paths_to_clean = [result_dir,TEMP_DATA]
-        prepare_system(logs_dir, paths_to_copy)
+        prepare_system(logs_dir, paths_to_copy, core_number, num_jobs, run_with_socket)
     else:
         result_dir = create_temp_subdirectory()
         print(f"Result dir path: {result_dir}", flush=True)
         logs_dir = result_dir
         paths_to_copy = [result_dir]
         paths_to_clean = [result_dir]
+    
     original_stdout = sys.stdout
     original_stderr = sys.stderr
+    
     inital_start = get_largest_numbered_folder(output_dir) + 1
-    number_runs = 9999
+    number_runs = 999999
     for conf_id in range(inital_start, inital_start + number_runs):
         print(f"current run out of {conf_id} {inital_start + number_runs}", flush=True)
         try:
@@ -358,8 +235,8 @@ def main(output_dir=OUTPUT_DIR, core_number=CORE_NUMBER, run_jobs=True):
                 "---------------------------------------------------------------------------------"
             ,flush=True)
             print(f"Configuration number {conf_id} out of {number_runs}",flush=True)  # 0-based
-
-            sim = initialize_icarus(conf, core_number, run_jobs, result_dir)
+            
+            sim = initialize_icarus(conf, core_number, run_jobs,num_jobs, run_with_socket, result_dir)
             sim.compute_simulation()
             
             sys.stdout.log.close()  # Close the log file associated with the logger
@@ -381,9 +258,8 @@ def main(output_dir=OUTPUT_DIR, core_number=CORE_NUMBER, run_jobs=True):
 # Execute on main
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-        main()
+        setup_config_path = os.path.join(os.getcwd(),"configurations/config.json")
     else:
-        run_jobs = bool(int(sys.argv[1]))
-        core_number = int(sys.argv[2])
-        output_dir= sys.argv[3]
-        main(output_dir=output_dir, run_jobs=run_jobs, core_number=core_number)
+        setup_config_path = sys.argv[1]
+    run_jobs, core_number, output_dir, num_jobs, run_with_socket = load_config(setup_config_path)
+    main(run_jobs, core_number, output_dir, num_jobs, run_with_socket)
