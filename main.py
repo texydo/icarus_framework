@@ -32,9 +32,8 @@ from sat_plotter.stat_plot_builder import StatPlotBuilder
 from configuration import CONFIG, parse_config, get_strat, get_random_dict
 
 import sys
-from job_manager import JobManager, JobManagerSocket
-
-from cancel_monitor_jobs import clear_jobs
+from multi_job_managment.job_manager import JobManager, JobManagerSocket
+from multi_job_managment.cancel_monitor_jobs import clear_jobs
 
 
 class Logger(object):
@@ -162,23 +161,18 @@ def create_temp_subdirectory():
             
 def prepare_jobs(core_number= CORE_NUMBER, with_socket=True):
     icarus_directory = os.getcwd()
-    python_script_path = os.path.join(icarus_directory, "task_monitor.py")
     parent_path = icarus_directory
     env_path = sys.executable
     log_data_path = os.path.join(icarus_directory, "logs")
     monitor_file_template = os.path.join(icarus_directory, "icarus_simulator/temp_data/run_X.txt")
-    # from job_manager import JobManager
-    # python_script_path = "/home/roeeidan/icarus_framework/task_monitor.py"
-    # parent_path = "/home/roeeidan/icarus_framework"
-    # env_path = "/home/roeeidan/.conda/envs/icarus/bin/python"
-    # log_data_path = "/home/roeeidan/icarus_framework/logs"
-    # monitor_file_template = "/home/roeeidan/icarus_framework/icarus_simulator/temp_data/run_X.txt"
     num_jobs = 40
     cpus_per_job = core_number
     mem = 120
     if with_socket:
+        python_script_path = os.path.join(icarus_directory, "multi_job_managment/task_monitor_socket.py")
         manager = JobManagerSocket(python_script_path, parent_path, env_path, log_data_path, num_jobs, cpus_per_job, mem)
     else:
+        python_script_path = os.path.join(icarus_directory, "multi_job_managment/task_monitor.py")
         manager = JobManager(python_script_path, parent_path, env_path, log_data_path, monitor_file_template, num_jobs, cpus_per_job, mem)
     manager.create_jobs()
 
@@ -382,8 +376,7 @@ def main(output_dir=OUTPUT_DIR, core_number=CORE_NUMBER, run_jobs=True):
             sys.stdout = original_stdout
             sys.stderr = original_stderr
             conf_id = conf_id - 1
-        os.remove(logger_name)
-            
+        os.remove(logger_name)           
 
 # Execute on main
 if __name__ == "__main__":
