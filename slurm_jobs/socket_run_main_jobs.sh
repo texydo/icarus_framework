@@ -14,5 +14,8 @@ cleanup() {
 # Trap signals to call the cleanup function before exiting
 trap 'cleanup' EXIT
 
+python_script_directory="/home/roeeidan/icarus_framework"
 
+# Change directory to the specified directory
+cd "$python_script_directory" || exit
 /home/roeeidan/.conda/envs/icarus/bin/python /home/roeeidan/icarus_framework/main.py /home/roeeidan/icarus_framework/configurations/config_jobs_with_socket.json
