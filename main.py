@@ -196,7 +196,7 @@ def initialize_icarus(conf, core_number, run_jobs,num_jobs, run_server, result_d
         )
 
         sim = IcarusSimulator(
-            [lsn_ph, grid_ph, cov_ph, rout_ph, edge_ph, bw_ph, latk_ph, zatk_ph, sim_traffic_ph, sim_attack_traffic_ph],
+            [lsn_ph, grid_ph, cov_ph, rout_ph, edge_ph, bw_ph, latk_ph, zatk_ph], #, sim_traffic_ph, sim_attack_traffic_ph],
             result_dir,
         )
         return sim 

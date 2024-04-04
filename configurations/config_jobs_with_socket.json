@@ -1,7 +1,7 @@
 {
     "run_jobs": false,
     "core_number": 64,
-    "output_dir": "/home/roeeidan/icarus_framework/outputs/WithoutRandomSeed",
+    "output_dir": "/dt/shabtaia/DT_Satellite/icarus_data/WithoutRandomSeed/",
     "num_jobs": 10,
     "run_with_socket": true
 }
