@@ -88,7 +88,8 @@ def create_jobs(available_cpus):
             job_script_name = create_job_script(job_index, cpus_per_job, config_file_path)
             job_scripts.append(job_script_name)
     submit_jobs(job_scripts)
-    # cleanup(job_scripts)
+    cleanup(job_scripts)
+    delete_files_in_temp_configs()
 
 def find_conda_env_path(env_name):
     # Execute the "conda env list" command
