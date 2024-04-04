@@ -30,7 +30,9 @@ class SimulatedAttackTrafficPhase(BasePhase):
         persist: bool,
         num_procs: int,
         num_batches: int,
+        num_jobs: int,
         run_jobs: bool,
+        run_server: bool,
         select_strat: BaseAttackSelectSimulation,
         assign_strat: BaseTrafficAssignSimulation,
         paths_in: Pname,
@@ -42,7 +44,9 @@ class SimulatedAttackTrafficPhase(BasePhase):
         super().__init__(read_persist, persist)
         self.num_procs = num_procs
         self.num_batches = num_batches
+        self.num_jobs = num_jobs
         self.run_jobs = run_jobs
+        self.run_server = run_server
         self.select_strat: BaseAttackSelectSimulation = select_strat
         self.assign_strat: BaseTrafficAssignSimulation = assign_strat
         self.ins: List[Pname] = [paths_in, edges_in, zattack_in, traffic_in]

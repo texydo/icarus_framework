@@ -29,7 +29,9 @@ class EdgePhase(BasePhase):
         persist: bool,
         num_procs: int,
         num_batches: int,
+        num_jobs: int,
         run_jobs: bool,
+        run_server: bool,
         ed_strat: BaseEdgeStrat,
         paths_in: Pname,
         nw_in: Pname,
@@ -40,7 +42,9 @@ class EdgePhase(BasePhase):
         super().__init__(read_persist, persist)
         self.num_procs = num_procs
         self.num_batches = num_batches
+        self.num_jobs = num_jobs
         self.run_jobs = run_jobs
+        self.run_server = run_server
         self.ed_strat: BaseEdgeStrat = ed_strat
         self.ins: List[Pname] = [paths_in, nw_in, sats_in, grid_in]
         self.outs: List[Pname] = [edges_out]

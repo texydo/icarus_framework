@@ -1,5 +1,5 @@
 {
-    "run_jobs": false,
+    "run_jobs": true,
     "core_number": 64,
     "output_dir": "/home/roeeidan/icarus_framework/outputs/WithoutRandomSeed",
     "num_jobs": 10,

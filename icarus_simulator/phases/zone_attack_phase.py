@@ -53,7 +53,9 @@ class ZoneAttackPhase(BasePhase):
         persist: bool,
         num_procs: int,
         num_batches: int,
+        num_jobs: int,
         run_jobs: bool,
+        run_server: bool,
         geo_constr_strat: BaseGeoConstraintStrat,
         zone_select_strat: BaseZoneSelectStrat,
         zone_build_strat: BaseZoneBuildStrat,
@@ -72,7 +74,9 @@ class ZoneAttackPhase(BasePhase):
         super().__init__(read_persist, persist)
         self.num_procs = num_procs
         self.num_batches = num_batches
+        self.num_jobs = num_jobs
         self.run_jobs = run_jobs
+        self.run_server = run_server
         self.geo_constr_strat: BaseGeoConstraintStrat = geo_constr_strat
         self.select_strat: BaseZoneSelectStrat = zone_select_strat
         self.build_strat: BaseZoneBuildStrat = zone_build_strat

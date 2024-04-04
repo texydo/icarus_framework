@@ -36,7 +36,9 @@ class LinkAttackPhase(BasePhase):
         persist: bool,
         num_procs: int,
         num_batches: int,
+        num_jobs: int,
         run_jobs: bool,
+        run_server: bool,
         geo_constr_strat: BaseGeoConstraintStrat,
         filter_strat: BasePathFilteringStrat,
         feas_strat: BaseFeasStrat,
@@ -50,7 +52,9 @@ class LinkAttackPhase(BasePhase):
         super().__init__(read_persist, persist)
         self.num_procs = num_procs
         self.num_batches = num_batches
+        self.num_jobs = num_jobs
         self.run_jobs = run_jobs
+        self.run_server = run_server
         self.geo_constr_strat: BaseGeoConstraintStrat = geo_constr_strat
         self.filter_strat: BasePathFilteringStrat = filter_strat
         self.feas_strat: BaseFeasStrat = feas_strat

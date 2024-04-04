@@ -24,7 +24,9 @@ class RoutingPhase(BasePhase):
         persist: bool,
         num_procs: int,
         num_batches: int,
+        num_jobs: int,
         run_jobs: bool,
+        run_server: bool,
         rout_strat: BaseRoutingStrat,
         grid_in: Pname,
         nw_in: Pname,
@@ -34,7 +36,9 @@ class RoutingPhase(BasePhase):
         super().__init__(read_persist, persist)
         self.num_procs = num_procs
         self.num_batches = num_batches
+        self.num_jobs=num_jobs
         self.run_jobs = run_jobs
+        self.run_server = run_server
         self.rout_strat: BaseRoutingStrat = rout_strat
         self.ins: List[Pname] = [grid_in, nw_in, cov_in]
         self.outs: List[Pname] = [paths_out]
