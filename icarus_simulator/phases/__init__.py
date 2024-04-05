@@ -8,3 +8,4 @@ from .link_attack_phase import LinkAttackPhase
 from .zone_attack_phase import ZoneAttackPhase
 from .simulate_traffic_phase import SimulatedTrafficPhase
 from .simulate_attack_phase import SimulatedAttackTrafficPhase
+from .simulate_scenario_phase import SimulatedScenarioPhase

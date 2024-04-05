@@ -195,8 +195,25 @@ def initialize_icarus(conf, core_number, run_jobs,num_jobs, run_server, result_d
             attack_traffic_out= ATTACK_TRAFFIC_DATA,
         )
 
+        simulate_scenario_ph = SimulatedScenarioPhase(
+            read_persist=True,
+            persist=True,
+            num_jobs=num_jobs,
+            num_procs=core_number,
+            run_server = run_server,
+            num_batches=2,
+            run_jobs=run_jobs,
+            select_strat=get_strat("traffic_routing_select_simulation",conf),
+            assign_strat=get_strat("traffic_routing_asg_simulation",conf),
+            attack_select_strat=get_strat("traffic_attack_select_simulation",conf),
+            grid_in=FULL_GRID_POS,
+            paths_in=PATH_DATA,
+            edges_in=EDGE_DATA,
+            zattack_in=ZONE_ATK_DATA,
+            scenario_out= SCENARIO_SIMULATED_DATA,
+        )
         sim = IcarusSimulator(
-            [lsn_ph, grid_ph, cov_ph, rout_ph, edge_ph, bw_ph, latk_ph, zatk_ph], #, sim_traffic_ph, sim_attack_traffic_ph],
+            [lsn_ph, grid_ph, cov_ph, rout_ph, edge_ph, bw_ph, latk_ph, zatk_ph, simulate_scenario_ph], #, sim_traffic_ph, sim_attack_traffic_ph],
             result_dir,
         )
         return sim 
@@ -216,7 +233,7 @@ def main(run_jobs, core_number, output_dir, num_jobs, run_with_socket):
         logs_dir = result_dir
         paths_to_copy = [result_dir]
         paths_to_clean = [result_dir]
-    
+    result_dir = RESULTS_DIR
     original_stdout = sys.stdout
     original_stderr = sys.stderr
     
@@ -242,8 +259,8 @@ def main(run_jobs, core_number, output_dir, num_jobs, run_with_socket):
             sys.stdout.log.close()  # Close the log file associated with the logger
             sys.stdout = original_stdout
             sys.stderr = original_stderr
-            conf_id = get_largest_numbered_folder(output_dir) + 1
-            copy_files(output_dir, conf_id, paths_to_copy, conf)
+            # conf_id = get_largest_numbered_folder(output_dir) + 1
+            # copy_files(output_dir, conf_id, paths_to_copy, conf)
         except Exception as e:
             # TODO add something to do when it failes
             print(f"There was an error:", flush=True)

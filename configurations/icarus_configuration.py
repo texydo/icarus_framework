@@ -132,7 +132,7 @@ def generate_default_dict(
     zone_edges_strat=ISLZoneStrat,
     zone_bneck_strat=DetectBneckStrat,
     traffic_routing_select_simulation_strat=RandomTrafficSelectStrat,
-    traffic_routing_select_simulation_actual_quanta=200000,
+    traffic_routing_select_simulation_actual_quanta=50000,
     traffic_routing_select_simulation_max_data_per_user=200,
     traffic_routing_select_simulation_average_data_per_user=5,
     traffic_routing_asg_simulation_strat=BidirTrafficAssignSimulation,
