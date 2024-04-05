@@ -206,6 +206,7 @@ def initialize_icarus(conf, core_number, run_jobs,num_jobs, run_server, result_d
             select_strat=get_strat("traffic_routing_select_simulation",conf),
             assign_strat=get_strat("traffic_routing_asg_simulation",conf),
             attack_select_strat=get_strat("traffic_attack_select_simulation",conf),
+            training_data_strat=get_strat("training_data_creation",conf),
             grid_in=FULL_GRID_POS,
             paths_in=PATH_DATA,
             edges_in=EDGE_DATA,
@@ -233,7 +234,6 @@ def main(run_jobs, core_number, output_dir, num_jobs, run_with_socket):
         logs_dir = result_dir
         paths_to_copy = [result_dir]
         paths_to_clean = [result_dir]
-    result_dir = RESULTS_DIR
     original_stdout = sys.stdout
     original_stderr = sys.stderr
     
@@ -259,8 +259,8 @@ def main(run_jobs, core_number, output_dir, num_jobs, run_with_socket):
             sys.stdout.log.close()  # Close the log file associated with the logger
             sys.stdout = original_stdout
             sys.stderr = original_stderr
-            # conf_id = get_largest_numbered_folder(output_dir) + 1
-            # copy_files(output_dir, conf_id, paths_to_copy, conf)
+            conf_id = get_largest_numbered_folder(output_dir) + 1
+            copy_files(output_dir, conf_id, paths_to_copy, conf)
         except Exception as e:
             # TODO add something to do when it failes
             print(f"There was an error:", flush=True)
@@ -270,8 +270,41 @@ def main(run_jobs, core_number, output_dir, num_jobs, run_with_socket):
             sys.stdout = original_stdout
             sys.stderr = original_stderr
             conf_id = conf_id - 1
-        os.remove(logger_name)           
+        os.remove(logger_name) 
+                  
+def get_results_folders(main_folder, num):
+    folders = [os.path.join(main_folder, folder) for folder in os.listdir(main_folder) if os.path.isdir(os.path.join(main_folder, folder))]
+    folders.sort(key=lambda x: int(os.path.basename(x)))
+    filtered_folders = []
+    for folder in folders:
+        folder_name = os.path.basename(folder)
+        if int(folder_name) % 5 == num:
+            results_folder = os.path.join(folder, 'results')
+            if os.path.exists(results_folder):
+                filtered_folders.append(results_folder)
+    return filtered_folders
 
+def create_training_data(run_jobs, core_number, output_dir, num_jobs, run_with_socket):
+    output_dir = output_dir
+    data_folders = get_results_folders(output_dir, 4)
+    core_number = core_number
+    for folder in data_folders:
+        try:
+            conf = parse_config(get_random_dict())[0]
+            result_dir = folder
+            print(
+                "---------------------------------------------------------------------------------"
+            ,flush=True)
+            print(f"Configuration number {folder} out of {len(data_folders)}",flush=True)  # 0-based
+            
+            sim = initialize_icarus(conf, core_number, run_jobs,num_jobs, run_with_socket, result_dir)
+            sim.compute_simulation()
+        except Exception as e:
+            # TODO add something to do when it failes
+            print(f"There was an error:", flush=True)
+            print(f"{e}", flush=True)
+            print(f"error end", flush=True)
+            
 # Execute on main
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -279,4 +312,6 @@ if __name__ == "__main__":
     else:
         setup_config_path = sys.argv[1]
     run_jobs, core_number, output_dir, num_jobs, run_with_socket = load_config(setup_config_path)
-    main(run_jobs, core_number, output_dir, num_jobs, run_with_socket)
+    create_training_data(run_jobs, core_number, output_dir, num_jobs, run_with_socket)
+
+

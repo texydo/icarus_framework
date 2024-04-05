@@ -132,7 +132,7 @@ def generate_default_dict(
     zone_edges_strat=ISLZoneStrat,
     zone_bneck_strat=DetectBneckStrat,
     traffic_routing_select_simulation_strat=RandomTrafficSelectStrat,
-    traffic_routing_select_simulation_actual_quanta=50000,
+    traffic_routing_select_simulation_actual_quanta=100000,
     traffic_routing_select_simulation_max_data_per_user=200,
     traffic_routing_select_simulation_average_data_per_user=5,
     traffic_routing_asg_simulation_strat=BidirTrafficAssignSimulation,
@@ -142,6 +142,7 @@ def generate_default_dict(
     traffic_routing_asg_simulation_routing_fix_strat=1,
     traffic_routing_asg_simulation_tries_routing_fix=0,
     traffic_attack_select_simulation_strat=AttackTrafficSelectStrat,
+    training_data_creation_strat = BasicTrainingDataStrat,
 ):
     return {
         "lsn": {
@@ -201,6 +202,7 @@ def generate_default_dict(
             "tries_routing_fix": [traffic_routing_asg_simulation_tries_routing_fix],
         },
         "traffic_attack_select_simulation": {"strat": [traffic_attack_select_simulation_strat]},
+        "training_data_creation":{"strat":[training_data_creation_strat]},
     }
 
 def get_random_epoch():

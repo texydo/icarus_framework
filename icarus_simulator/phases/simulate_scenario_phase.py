@@ -1,7 +1,6 @@
 #  2020 Tommaso Ciussani and Giacomo Giuliari
 
 from typing import List, Tuple, Dict
-import networkx
 from icarus_simulator.phases.base_phase import BasePhase
 from icarus_simulator.strategies.base_strat import BaseStrat
 
@@ -13,6 +12,9 @@ from icarus_simulator.strategies.traffic_assignment_simulation.base_bw_assig_sim
 )
 from icarus_simulator.strategies.traffic_select_attack_simulation.base_attack_select_simulation import (
     BaseAttackSelectSimulation,
+)
+from icarus_simulator.strategies.training_data_creation.base_training_data import (
+    BaseDataCreation
 )
 from icarus_simulator.multiprocessor import Multiprocessor
 from icarus_simulator.structure_definitions import (
@@ -39,6 +41,7 @@ class SimulatedScenarioPhase(BasePhase):
         select_strat: BaseBwSelectSimulation,
         assign_strat: BaseTrafficAssignSimulation,
         attack_select_strat: BaseAttackSelectSimulation,
+        training_data_strat : BaseDataCreation,
         grid_in: Pname,
         paths_in: Pname,
         edges_in: Pname,
@@ -54,6 +57,7 @@ class SimulatedScenarioPhase(BasePhase):
         self.select_strat: BaseBwSelectSimulation = select_strat
         self.assign_strat: BaseTrafficAssignSimulation = assign_strat 
         self.attack_select_strat: BaseAttackSelectSimulation = attack_select_strat
+        self.training_data_strat : BaseDataCreation = training_data_strat
         self.ins: List[Pname] = [grid_in, paths_in, edges_in, zattack_in]
         self.outs: List[Pname] = [scenario_out]
 
@@ -76,7 +80,6 @@ class SimulatedScenarioPhase(BasePhase):
     def _compute(
         self, grid_pos: GridPos, path_data: PathData, edge_data: EdgeData, zone_attack_data: ZoneAttackData
     ) -> Tuple[Dict[PathData,BwData]]:
-        # TODO turn this into multple jobs / process will probably be smart and faster?
         index = 0
         samples = []
         for zatk in zone_attack_data.values():
@@ -84,9 +87,9 @@ class SimulatedScenarioPhase(BasePhase):
                 continue
             samples.append([zatk, index])
             index +=1
-            if index < 20:
+            if index >= 100:
                 break
-            
+        print(f"Number of scenarios:{len(samples)}")
         process_params = (grid_pos, path_data, edge_data,
                           self.select_strat, self.assign_strat, self.attack_select_strat)
         import time
@@ -103,15 +106,16 @@ class SimulatedScenarioPhase(BasePhase):
                 process_params=process_params
             )
             ret_dict = multi.process_batches()  # It must be a tuple!
-        print(f"It took {time.time() - start_time}")
-        result = [ret_dict[i] for i in range(len(ret_dict))]
-        # TODO edit the results to the way i want it to be
-        return result #TODO
+        results = [ret_dict[i] for i in range(len(ret_dict))]
+        for res in results:
+            reg_bw = res["reg_bw_data"]
+            self.training_data_strat.compute(grid_pos=grid_pos, bw_data=reg_bw, y=0)
+            atk_bw = res["atk_bw_data"]
+            self.training_data_strat.compute(grid_pos=grid_pos, bw_data=atk_bw, y=1)
+        transformed_list = [{"atk_actual_traffic": d["atk_actual_traffic"], "reg_actual_traffic": d["reg_actual_traffic"]} for d in results]
+        return (transformed_list,)
 
     def _check_result(self, result: Tuple[Dict[PathData,BwData]]) -> None:
-        bw_data = result[0]['bw_data']
-        for bd in bw_data.values():
-            assert bd.idle_bw <= bd.capacity
         return
 
 class ScenarioSimulateMultiproc(Multiprocessor):
@@ -125,23 +129,10 @@ class ScenarioSimulateMultiproc(Multiprocessor):
         zatk = sample[0]
         index = sample[1]
         grid_pos, path_data, edge_data, select_strat, assign_strat, attack_select_strat = params
-        import time
-        start_time = time.time()
-        # Creates normal simulated traffic TODO update bw_data into networkx
-        wanted_paths = select_strat.compute(grid_pos, path_data)
-        print(f"Part A1 {time.time() - start_time}")
-        start_time = time.time()
-        bw_data, actual_traffic = assign_strat.compute(path_data, wanted_paths, edge_data)
-        print(f"Part A2 {time.time() - start_time}")
-        start_time = time.time()
-        # Creates attack  simulated traffic TODO update bw_data into networkx
+        wanted_traffic = select_strat.compute(grid_pos, path_data)
+        reg_bw_data, reg_actual_traffic = assign_strat.compute(path_data, wanted_traffic, edge_data)
         atkflowset = zatk.atkflowset
-        chosen_paths = attack_select_strat.compute(path_data, atkflowset, wanted_paths)
-        print(f"Part B1 {time.time() - start_time}")
-        start_time = time.time()
-        bw_data, actual_traffic = assign_strat.compute(path_data, chosen_paths, edge_data)
-        print(f"Part B2 {time.time() - start_time}")
-        # TODO create a random routing scenario
-        # TODO insert the attack
-        # TODO make them networkx
-        process_result[index] = {"bw_data": bw_data,"actual_traffic": actual_traffic}
+        chosen_paths = attack_select_strat.compute(path_data, atkflowset, wanted_traffic)
+        atk_bw_data, atk_actual_traffic = assign_strat.compute(path_data, chosen_paths, edge_data)
+        process_result[index] = {"atk_bw_data": atk_bw_data, "atk_actual_traffic": atk_actual_traffic,
+                                 "reg_bw_data": reg_bw_data, "reg_actual_traffic": reg_actual_traffic}

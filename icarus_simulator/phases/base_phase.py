@@ -74,23 +74,23 @@ class BasePhase:
         )
 
     def execute_phase(self, input_values: List[Any], fname: str):
-        print(f"{self.name} phase")
+        print(f"{self.name} phase", flush=True)
         start = time.time()
         read = True
         # If a results file is present, read it. Else, compute the result.
         if self.read_persist and os.path.isfile(fname):
-            print(f"{self.name} reading")
+            print(f"{self.name} reading", flush=True)
             result = compress_pickle.load(
                 fname, compression="bz2", set_default_extension=False
             )
-            print(f"{self.name} read in {time.time() - start}")
+            print(f"{self.name} read in {time.time() - start}", flush=True)
         else:
             read = False
-            print(f"{self.name} computing")
+            print(f"{self.name} computing", flush=True)
             assert len(input_values) == len(self.input_properties)
             result = self._compute(*input_values)
             assert len(result) == len(self.output_properties)
-            print(f"{self.name} computed in {time.time() - start}")
+            print(f"{self.name} computed in {time.time() - start}", flush=True)
 
         # Check the consistency of the results
         self._check_result(result)
@@ -101,9 +101,9 @@ class BasePhase:
             compress_pickle.dump(
                 result, fname, compression="bz2", set_default_extension=False
             )
-            print(f"{self.name} write: {time.time() - st}")
-        print(f"{self.name} finished in {time.time() - start}")
-        print("")
+            print(f"{self.name} write: {time.time() - st}", flush=True)
+        print(f"{self.name} finished in {time.time() - start}", flush=True)
+        print("", flush=True)
         return result
     
     def serialize_data(self, data, file_name):
