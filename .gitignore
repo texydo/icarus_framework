@@ -6,6 +6,7 @@ icarus_simulator/temp_data/
 icarus_simulator/data/
 main_logs/
 outputs/
+Training/
 slurm_jobs/temp_configs
 # Ignore all .pyc files
 *.pyc

@@ -278,10 +278,10 @@ def get_results_folders(main_folder, num):
     filtered_folders = []
     for folder in folders:
         folder_name = os.path.basename(folder)
-        if int(folder_name) % 5 == num:
-            results_folder = os.path.join(folder, 'results')
-            if os.path.exists(results_folder):
-                filtered_folders.append(results_folder)
+        # if int(folder_name) % 5 == num:
+        results_folder = os.path.join(folder, 'results')
+        if os.path.exists(results_folder):
+            filtered_folders.append(results_folder)
     return filtered_folders
 
 def create_training_data(run_jobs, core_number, output_dir, num_jobs, run_with_socket):

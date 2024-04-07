@@ -75,20 +75,24 @@ class SimulatedScenarioPhase(BasePhase):
 
     @property
     def name(self) -> str:
-        return "SimScenario"
+        return "SimScenarioWeightedDetectability"
 
     def _compute(
         self, grid_pos: GridPos, path_data: PathData, edge_data: EdgeData, zone_attack_data: ZoneAttackData
     ) -> Tuple[Dict[PathData,BwData]]:
         index = 0
         samples = []
-        for zatk in zone_attack_data.values():
-            if zatk is None:
-                continue
-            samples.append([zatk, index])
-            index +=1
-            if index >= 100:
-                break
+        filtered_and_sorted_zatk_objects = sorted((zatk for zatk in zone_attack_data.values() if zatk is not None),
+                                                  key=lambda zatk: zatk.detectability,reverse=True)
+        indexed_zatk_list = [[zatk, index] for index, zatk in enumerate(filtered_and_sorted_zatk_objects)]
+        samples = indexed_zatk_list[:3]
+        # for zatk in zone_attack_data.values():
+        #     if zatk is None:
+        #         continue
+        #     samples.append([zatk, index])
+        #     index +=1
+        #     if index >= 10:
+        #         break
         print(f"Number of scenarios:{len(samples)}")
         process_params = (grid_pos, path_data, edge_data,
                           self.select_strat, self.assign_strat, self.attack_select_strat)

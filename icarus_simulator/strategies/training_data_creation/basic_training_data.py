@@ -18,7 +18,7 @@ class BasicTrainingDataStrat(BaseDataCreation):
     def __init__(self, **kwargs):
         super().__init__()
         # TODO change this
-        self.store_path = "/dt/shabtaia/DT_Satellite/icarus_data/graphs/basic"
+        self.store_path = "/dt/shabtaia/DT_Satellite/icarus_data/graphs/weightedDetectability/raw/"
         if len(kwargs) > 0:
             pass  # Appease the unused param inspection
     @property
