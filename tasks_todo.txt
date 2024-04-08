@@ -1,9 +1,14 @@
 
-Disuss wit hyuval and asaf regarding routing
-Discuss with yuval asaf how many zoneattacks to sample differently as there are quite alot and its huge
+Add zone selection of different countries
+Create continuous attack scenario (every t time same attack)
 
-Make it socket
-make paths for jobs better without my direct paths
+Create dynamic rerouting in regards to how the routing protocl works
+Should allocate and if stuck should reroute according to new shortest paths
 
-make the number of jobs sync in a single parameter
+
+
+Model training wise:
+Extract network matrix
+Train models without node information
+
 add a location to dump error runs
