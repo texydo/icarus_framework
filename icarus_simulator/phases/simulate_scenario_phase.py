@@ -18,6 +18,7 @@ from icarus_simulator.strategies.training_data_creation.base_training_data impor
 )
 from icarus_simulator.multiprocessor import Multiprocessor
 from icarus_simulator.structure_definitions import (
+    SatPos,
     GridPos,
     Pname,
     BwData,
@@ -42,6 +43,7 @@ class SimulatedScenarioPhase(BasePhase):
         assign_strat: BaseTrafficAssignSimulation,
         attack_select_strat: BaseAttackSelectSimulation,
         training_data_strat : BaseDataCreation,
+        sat_in: Pname,
         grid_in: Pname,
         paths_in: Pname,
         edges_in: Pname,
@@ -58,7 +60,7 @@ class SimulatedScenarioPhase(BasePhase):
         self.assign_strat: BaseTrafficAssignSimulation = assign_strat 
         self.attack_select_strat: BaseAttackSelectSimulation = attack_select_strat
         self.training_data_strat : BaseDataCreation = training_data_strat
-        self.ins: List[Pname] = [grid_in, paths_in, edges_in, zattack_in]
+        self.ins: List[Pname] = [sat_in, grid_in, paths_in, edges_in, zattack_in]
         self.outs: List[Pname] = [scenario_out]
 
     @property
@@ -78,14 +80,14 @@ class SimulatedScenarioPhase(BasePhase):
         return "SimScenarioWeightedDetectability"
 
     def _compute(
-        self, grid_pos: GridPos, path_data: PathData, edge_data: EdgeData, zone_attack_data: ZoneAttackData
+        self, sat_in: SatPos, grid_pos: GridPos, path_data: PathData, edge_data: EdgeData, zone_attack_data: ZoneAttackData
     ) -> Tuple[Dict[PathData,BwData]]:
         index = 0
         samples = []
         filtered_and_sorted_zatk_objects = sorted((zatk for zatk in zone_attack_data.values() if zatk is not None),
                                                   key=lambda zatk: zatk.detectability,reverse=True)
         indexed_zatk_list = [[zatk, index] for index, zatk in enumerate(filtered_and_sorted_zatk_objects)]
-        samples = indexed_zatk_list[:3]
+        samples = indexed_zatk_list[:1]
         # for zatk in zone_attack_data.values():
         #     if zatk is None:
         #         continue

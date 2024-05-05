@@ -207,6 +207,7 @@ def initialize_icarus(conf, core_number, run_jobs,num_jobs, run_server, result_d
             assign_strat=get_strat("traffic_routing_asg_simulation",conf),
             attack_select_strat=get_strat("traffic_attack_select_simulation",conf),
             training_data_strat=get_strat("training_data_creation",conf),
+            sat_in=SAT_POS,
             grid_in=FULL_GRID_POS,
             paths_in=PATH_DATA,
             edges_in=EDGE_DATA,
@@ -312,6 +313,6 @@ if __name__ == "__main__":
     else:
         setup_config_path = sys.argv[1]
     run_jobs, core_number, output_dir, num_jobs, run_with_socket = load_config(setup_config_path)
-    create_training_data(run_jobs, core_number, output_dir, num_jobs, run_with_socket)
+    main(run_jobs, core_number, output_dir, num_jobs, run_with_socket)
 
 
