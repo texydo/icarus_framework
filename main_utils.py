@@ -139,4 +139,39 @@ def load_config(config_path):
     output_dir = config['output_dir']
     num_jobs = config['num_jobs']
     run_with_socket = config['run_with_socket']
-    return run_jobs, core_number, output_dir, num_jobs, run_with_socket
+    number_of_runs = config['number_of_runs']
+    interval_size_sec = config['interval_size_sec']
+    interval_size_min = config['interval_size_min']
+    return run_jobs, core_number, output_dir, num_jobs, run_with_socket, number_of_runs, interval_size_sec, interval_size_min
+
+def update_time_intervals(config, interval_size_sec, interval_size_min):
+    lsn_value = config["lsn"]
+
+    # Extract current time components
+    hrs = lsn_value["hrs"][0]
+    mins = lsn_value["mins"][0]
+    secs = lsn_value["secs"][0]
+
+    # Calculate total seconds after adding intervals
+    total_secs = hrs * 3600 + mins * 60 + secs + interval_size_sec + interval_size_min * 60
+
+    # Calculate new time components
+    new_hrs = total_secs // 3600
+    new_mins = (total_secs % 3600) // 60
+    new_secs = total_secs % 60
+
+    # Update time components
+    lsn_value["hrs"][0] = new_hrs
+    lsn_value["mins"][0] = new_mins
+    lsn_value["secs"][0] = new_secs
+    
+def create_run_folder(result_dir, run_num):
+    # Create the directory path
+    run_folder = os.path.join(result_dir, f"{run_num}")
+
+    # Create the directory if it doesn't exist
+    if not os.path.exists(run_folder):
+        os.makedirs(run_folder)
+
+    # Return the path to the created directory
+    return run_folder

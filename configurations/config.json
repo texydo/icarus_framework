@@ -3,6 +3,10 @@
     "core_number": 256,
     "output_dir": "/dt/shabtaia/DT_Satellite/icarus_data/WithoutRandomSeed/",
     "num_jobs": 10,
-    "run_with_socket": false
+    "run_with_socket": false,
+    "run_continuous": true,
+    "number_of_runs": 5,
+    "interval_size_sec": 30,
+    "interval_size_min": 0
 }
   

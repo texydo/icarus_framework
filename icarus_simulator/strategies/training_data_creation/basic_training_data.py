@@ -8,7 +8,7 @@ from typing import List
 from icarus_simulator.strategies.training_data_creation.base_training_data import (
     BaseDataCreation,
 )
-from icarus_simulator.structure_definitions import GridPos, BwData
+from icarus_simulator.structure_definitions import GridPos, BwData, SatPos
 from icarus_simulator.utils import get_ordered_idx
 
 
@@ -63,9 +63,9 @@ class BasicTrainingDataStrat(BaseDataCreation):
         return x
     
     
-    def compute(self, grid_pos: GridPos, bw_data: BwData, y: int):
+    def compute(self, sat_pos: SatPos, bw_data: BwData, y: int):
         edge_index, edge_attr = self.process_edges_numeric(bw_data)
-        x = self.process_nodes(grid_pos)
+        x = self.process_nodes(sat_pos)
         data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=[y])
         save_graph(data,self.store_path)
 

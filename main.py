@@ -220,7 +220,7 @@ def initialize_icarus(conf, core_number, run_jobs,num_jobs, run_server, result_d
         )
         return sim 
     
-def main(run_jobs, core_number, output_dir, num_jobs, run_with_socket):
+def main(run_jobs, core_number, output_dir, num_jobs, run_with_socket, number_of_runs, interval_size_sec, interval_size_min):
     output_dir = output_dir
     core_number = core_number
     if run_jobs:
@@ -254,16 +254,19 @@ def main(run_jobs, core_number, output_dir, num_jobs, run_with_socket):
             ,flush=True)
             print(f"Configuration number {conf_id} out of {number_runs}",flush=True)  # 0-based
             
-            sim = initialize_icarus(conf, core_number, run_jobs,num_jobs, run_with_socket, result_dir)
-            sim.compute_simulation()
-            
+            for run_num in range(number_of_runs):
+                current_result_folder  = create_run_folder(result_dir, run_num)
+                if run_num != 0:
+                    update_time_intervals(conf, interval_size_sec, interval_size_min)    
+                sim = initialize_icarus(conf, core_number, run_jobs,num_jobs, run_with_socket, current_result_folder)
+                sim.compute_simulation()
+
             sys.stdout.log.close()  # Close the log file associated with the logger
             sys.stdout = original_stdout
             sys.stderr = original_stderr
             conf_id = get_largest_numbered_folder(output_dir) + 1
             copy_files(output_dir, conf_id, paths_to_copy, conf)
         except Exception as e:
-            # TODO add something to do when it failes
             print(f"There was an error:", flush=True)
             print(f"{e}", flush=True)
             print(f"error end", flush=True)
@@ -312,7 +315,7 @@ if __name__ == "__main__":
         setup_config_path = os.path.join(os.getcwd(),"configurations/config.json")
     else:
         setup_config_path = sys.argv[1]
-    run_jobs, core_number, output_dir, num_jobs, run_with_socket = load_config(setup_config_path)
-    main(run_jobs, core_number, output_dir, num_jobs, run_with_socket)
+    run_jobs, core_number, output_dir, num_jobs, run_with_socket, number_of_runs, interval_size_sec, interval_size_min = load_config(setup_config_path)
+    main(run_jobs, core_number, output_dir, num_jobs, run_with_socket, number_of_runs, interval_size_sec, interval_size_min)
 
 

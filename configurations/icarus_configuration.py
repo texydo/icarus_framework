@@ -238,9 +238,9 @@ def get_random_countries(file_path = "icarus_simulator/data/natural_earth_world_
     return selected_countries
 
 def get_random_dict():
-    lsn_hrs= random.randint(0,24)
-    lsn_mins= random.randint(0,60)
-    lsn_secs= random.randint(0,60)
+    lsn_hrs= 0
+    lsn_mins= 0
+    lsn_secs= 0
     lsn_epoch = get_random_epoch()
     atk_constr_geo_names = get_random_countries()
     return generate_default_dict(lsn_hrs=lsn_hrs, lsn_mins=lsn_mins, lsn_secs=lsn_secs,

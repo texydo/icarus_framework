@@ -80,7 +80,7 @@ class SimulatedScenarioPhase(BasePhase):
         return "SimScenarioWeightedDetectability"
 
     def _compute(
-        self, sat_in: SatPos, grid_pos: GridPos, path_data: PathData, edge_data: EdgeData, zone_attack_data: ZoneAttackData
+        self, sat_pos: SatPos, grid_pos: GridPos, path_data: PathData, edge_data: EdgeData, zone_attack_data: ZoneAttackData
     ) -> Tuple[Dict[PathData,BwData]]:
         index = 0
         samples = []
@@ -115,9 +115,9 @@ class SimulatedScenarioPhase(BasePhase):
         results = [ret_dict[i] for i in range(len(ret_dict))]
         for res in results:
             reg_bw = res["reg_bw_data"]
-            self.training_data_strat.compute(grid_pos=grid_pos, bw_data=reg_bw, y=0)
+            self.training_data_strat.compute(sat_pos=sat_pos, bw_data=reg_bw, y=0)
             atk_bw = res["atk_bw_data"]
-            self.training_data_strat.compute(grid_pos=grid_pos, bw_data=atk_bw, y=1)
+            self.training_data_strat.compute(sat_pos=sat_pos, bw_data=atk_bw, y=1)
         transformed_list = [{"atk_actual_traffic": d["atk_actual_traffic"], "reg_actual_traffic": d["reg_actual_traffic"]} for d in results]
         return (transformed_list,)
 
