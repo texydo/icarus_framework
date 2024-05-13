@@ -242,9 +242,11 @@ def get_random_dict():
     lsn_mins= 0
     lsn_secs= 0
     lsn_epoch = get_random_epoch()
-    atk_constr_geo_names = get_random_countries()
+    # atk_constr_geo_names = get_random_countries()
+    # atk_constr_geo_names=atk_constr_geo_names
+    atk_constr_strat = NoConstrStrat
     return generate_default_dict(lsn_hrs=lsn_hrs, lsn_mins=lsn_mins, lsn_secs=lsn_secs,
-                                 lsn_epoch=lsn_epoch,atk_constr_geo_names=atk_constr_geo_names)
+                                 lsn_epoch=lsn_epoch,atk_constr_strat=atk_constr_strat)
 
 
 # Here follow methods used for the parsing.

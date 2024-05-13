@@ -100,15 +100,18 @@ def get_largest_numbered_folder(directory):
         # If no numeric directories found, return None
         return 0
     
-def copy_files(output_dir, conf_id, paths_to_copy, conf):
+def copy_files(output_dir, conf_id, paths_to_copy, config_sim, config_init):
     output_dir = os.path.abspath(output_dir)
     new_dir_path = os.path.join(output_dir, str(conf_id))
     if not os.path.exists(new_dir_path):
         os.makedirs(new_dir_path)
     copy_files_with_subdirectories(paths_to_copy, new_dir_path)
-    file_path = os.path.join(new_dir_path, "conf.pkl")
+    file_path = os.path.join(new_dir_path, "config_sim.pkl")
     with open(file_path, 'wb') as file:
-        pickle.dump(conf, file)
+        pickle.dump(config_sim, file)
+    file_path = os.path.join(new_dir_path, "config_init.pkl")
+    with open(file_path, 'wb') as file:
+        pickle.dump(config_init, file)
 
 def create_temp_subdirectory():
     # Get the path to the temporary directory
@@ -134,6 +137,9 @@ def clean_paths(list_of_directories):
 def load_config(config_path):
     with open(config_path, 'r') as file:
         config = json.load(file)
+    return config
+
+def extract_config_init(config):
     run_jobs = config['run_jobs']
     core_number = config['core_number']
     output_dir = config['output_dir']
@@ -143,7 +149,7 @@ def load_config(config_path):
     interval_size_sec = config['interval_size_sec']
     interval_size_min = config['interval_size_min']
     return run_jobs, core_number, output_dir, num_jobs, run_with_socket, number_of_runs, interval_size_sec, interval_size_min
-
+    
 def update_time_intervals(config, interval_size_sec, interval_size_min):
     lsn_value = config["lsn"]
 

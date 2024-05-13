@@ -220,7 +220,11 @@ def initialize_icarus(conf, core_number, run_jobs,num_jobs, run_server, result_d
         )
         return sim 
     
-def main(run_jobs, core_number, output_dir, num_jobs, run_with_socket, number_of_runs, interval_size_sec, interval_size_min):
+def main(config_init):
+    config_init_values = extract_config_init(config_init)
+    run_jobs, core_number, output_dir, num_jobs, run_with_socket = config_init_values[:5]
+    number_of_runs, interval_size_sec, interval_size_min = config_init_values[5:]
+    
     output_dir = output_dir
     core_number = core_number
     if run_jobs:
@@ -245,7 +249,7 @@ def main(run_jobs, core_number, output_dir, num_jobs, run_with_socket, number_of
         try:
             clean_paths(paths_to_clean)
             # Repeat the simulation process for all configurations in the config file
-            conf = parse_config(get_random_dict())[0]
+            config_sim = parse_config(get_random_dict())[0]
             logger_name = os.path.join(logs_dir, f"simulation_{conf_id}.log")
             sys.stdout = Logger(logger_name)
             sys.stderr = sys.stdout
@@ -257,15 +261,15 @@ def main(run_jobs, core_number, output_dir, num_jobs, run_with_socket, number_of
             for run_num in range(number_of_runs):
                 current_result_folder  = create_run_folder(result_dir, run_num)
                 if run_num != 0:
-                    update_time_intervals(conf, interval_size_sec, interval_size_min)    
-                sim = initialize_icarus(conf, core_number, run_jobs,num_jobs, run_with_socket, current_result_folder)
+                    update_time_intervals(config_sim, interval_size_sec, interval_size_min)    
+                sim = initialize_icarus(config_sim, core_number, run_jobs,num_jobs, run_with_socket, current_result_folder)
                 sim.compute_simulation()
 
             sys.stdout.log.close()  # Close the log file associated with the logger
             sys.stdout = original_stdout
             sys.stderr = original_stderr
             conf_id = get_largest_numbered_folder(output_dir) + 1
-            copy_files(output_dir, conf_id, paths_to_copy, conf)
+            copy_files(output_dir, conf_id, paths_to_copy, config_sim,config_init)
         except Exception as e:
             print(f"There was an error:", flush=True)
             print(f"{e}", flush=True)
@@ -315,7 +319,7 @@ if __name__ == "__main__":
         setup_config_path = os.path.join(os.getcwd(),"configurations/config.json")
     else:
         setup_config_path = sys.argv[1]
-    run_jobs, core_number, output_dir, num_jobs, run_with_socket, number_of_runs, interval_size_sec, interval_size_min = load_config(setup_config_path)
-    main(run_jobs, core_number, output_dir, num_jobs, run_with_socket, number_of_runs, interval_size_sec, interval_size_min)
+    config_init = load_config(setup_config_path)
+    main(config_init)
 
 
