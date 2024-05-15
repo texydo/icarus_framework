@@ -37,7 +37,7 @@ CONFIG = {
     "cover": {"strat": [AngleCovStrat], "min_elev_angle": [40]},
     "rout": {
         "strat": [SSPRoutStrat],
-        "desirability_stretch": [2.3],
+        "desirability_stretch": [2],
         "k": [5],
         "esx_theta": [0.5],
     },
@@ -107,7 +107,7 @@ def generate_default_dict(
     cover_strat=AngleCovStrat,
     cover_min_elev_angle=40,
     rout_strat=SSPRoutStrat,
-    rout_desirability_stretch=2.3,
+    rout_desirability_stretch=1.5,
     rout_k=5,
     rout_esx_theta=0.5,
     edges_strat=BidirEdgeStrat,
@@ -245,7 +245,9 @@ def get_random_dict():
     # atk_constr_geo_names = get_random_countries()
     # atk_constr_geo_names=atk_constr_geo_names
     atk_constr_strat = NoConstrStrat
+    rout_start = KSPRoutStrat
     return generate_default_dict(lsn_hrs=lsn_hrs, lsn_mins=lsn_mins, lsn_secs=lsn_secs,
+                                 rout_strat=rout_start,
                                  lsn_epoch=lsn_epoch,atk_constr_strat=atk_constr_strat)
 
 
