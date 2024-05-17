@@ -22,6 +22,7 @@ from statistics import mean
 import tempfile
 import random
 import string
+import time
 
 from icarus_simulator.icarus_simulator import IcarusSimulator
 from icarus_simulator.default_properties import *
@@ -32,6 +33,7 @@ from sat_plotter.stat_plot_builder import StatPlotBuilder
 from configurations.icarus_configuration import CONFIG, parse_config, get_strat, get_random_dict
 
 import sys
+import traceback
 
 from multi_job_managment.job_manager import JobManager, JobManagerSocket
 from multi_job_managment.cancel_monitor_jobs import clear_jobs
@@ -39,7 +41,7 @@ from multi_job_managment.logger import Logger
 from main_utils import *
     
 # Change these parameters to match your machine
-CORE_NUMBER = 16
+CORE_NUMBER = 128
 RESULTS_DIR = "results"
 OUTPUT_DIR = "outputs"
 LOGS_DIR = "logs"
@@ -215,7 +217,7 @@ def initialize_icarus(conf, core_number, run_jobs,num_jobs, run_server, result_d
             scenario_out= SCENARIO_SIMULATED_DATA,
         )
         sim = IcarusSimulator(
-            [lsn_ph, grid_ph, cov_ph, rout_ph, edge_ph, bw_ph, latk_ph, zatk_ph, simulate_scenario_ph], #, sim_traffic_ph, sim_attack_traffic_ph],
+            [lsn_ph, grid_ph, cov_ph, rout_ph, edge_ph, bw_ph, latk_ph, zatk_ph], #simulate_scenario_ph], #, sim_traffic_ph, sim_attack_traffic_ph],
             result_dir,
         )
         return sim 
@@ -243,7 +245,7 @@ def main(config_init):
     original_stderr = sys.stderr
     
     inital_start = get_largest_numbered_folder(output_dir) + 1
-    number_runs = 999999
+    number_runs = 200
     for conf_id in range(inital_start, inital_start + number_runs):
         print(f"current run out of {conf_id} {inital_start + number_runs}", flush=True)
         try:
@@ -253,18 +255,21 @@ def main(config_init):
             logger_name = os.path.join(logs_dir, f"simulation_{conf_id}.log")
             sys.stdout = Logger(logger_name)
             sys.stderr = sys.stdout
-            print(
-                "---------------------------------------------------------------------------------"
-            ,flush=True)
+            print_lines(4)
             print(f"Configuration number {conf_id} out of {number_runs}",flush=True)  # 0-based
             
+            total_start_time = time.time()
             for run_num in range(number_of_runs):
+                print(f"Run number {run_num} out of {number_of_runs}", flush=True)
+                single_start_time = time.time()
                 current_result_folder  = create_run_folder(result_dir, run_num)
                 if run_num != 0:
                     update_time_intervals(config_sim, interval_size_sec, interval_size_min)    
                 sim = initialize_icarus(config_sim, core_number, run_jobs,num_jobs, run_with_socket, current_result_folder)
                 sim.compute_simulation()
-
+                print(f"Single run time took: {print_total_run_time_minutes(single_start_time):.2f} minutes", flush=True)
+                print_lines(1)
+            print(f"Simulation run time took: {print_total_run_time_minutes(total_start_time):.2f} minutes", flush=True)
             sys.stdout.log.close()  # Close the log file associated with the logger
             sys.stdout = original_stdout
             sys.stderr = original_stderr
@@ -273,6 +278,8 @@ def main(config_init):
         except Exception as e:
             print(f"There was an error:", flush=True)
             print(f"{e}", flush=True)
+            print("Traceback (most recent call last):", flush=True)
+            traceback.print_exc(file=sys.stdout)
             print(f"error end", flush=True)
             sys.stdout.log.close()  # Close the log file associated with the logger
             sys.stdout = original_stdout

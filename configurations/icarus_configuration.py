@@ -108,7 +108,7 @@ def generate_default_dict(
     cover_min_elev_angle=40,
     rout_strat=SSPRoutStrat,
     rout_desirability_stretch=1.5,
-    rout_k=5,
+    rout_k=3,
     rout_esx_theta=0.5,
     edges_strat=BidirEdgeStrat,
     bw_sel_strat=SampledBwSelectStrat,

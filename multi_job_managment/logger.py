@@ -8,8 +8,9 @@ class Logger(object):
     def write(self, message):
         self.terminal.write(message)  # Write the message to the standard output
         self.log.write(message)  # Write the message to the log file
+        self.flush()  # Ensure that each message is immediately flushed
 
-    def flush(self):  # Needed for Python 3 compatibility
-        # This flush method is needed for python 3 compatibility.
-        # This handles the implicit flush command by file objects.
-        pass
+    def flush(self):
+        # Flush both the terminal and log file to ensure all messages are fully written out
+        self.terminal.flush()
+        self.log.flush()

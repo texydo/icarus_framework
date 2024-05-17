@@ -6,6 +6,7 @@ import pickle
 import tempfile
 import string
 import json
+import time
 from multi_job_managment.job_manager import JobManager, JobManagerSocket
 
 def clear_logs_in_directory(directory):
@@ -154,9 +155,9 @@ def update_time_intervals(config, interval_size_sec, interval_size_min):
     lsn_value = config["lsn"]
 
     # Extract current time components
-    hrs = lsn_value["hrs"][0]
-    mins = lsn_value["mins"][0]
-    secs = lsn_value["secs"][0]
+    hrs = lsn_value["hrs"]
+    mins = lsn_value["mins"]
+    secs = lsn_value["secs"]
 
     # Calculate total seconds after adding intervals
     total_secs = hrs * 3600 + mins * 60 + secs + interval_size_sec + interval_size_min * 60
@@ -167,9 +168,9 @@ def update_time_intervals(config, interval_size_sec, interval_size_min):
     new_secs = total_secs % 60
 
     # Update time components
-    lsn_value["hrs"][0] = new_hrs
-    lsn_value["mins"][0] = new_mins
-    lsn_value["secs"][0] = new_secs
+    lsn_value["hrs"] = new_hrs
+    lsn_value["mins"] = new_mins
+    lsn_value["secs"] = new_secs
     
 def create_run_folder(result_dir, run_num):
     # Create the directory path
@@ -181,3 +182,14 @@ def create_run_folder(result_dir, run_num):
 
     # Return the path to the created directory
     return run_folder
+
+def print_total_run_time_minutes(start_time):
+    run_time_seconds = time.time() - start_time
+    run_time_minutes = run_time_seconds / 60
+    return run_time_minutes
+
+def print_lines(num_lines):
+    for _ in range(num_lines):
+        print(
+                "---------------------------------------------------------------------------------"
+            ,flush=True)
