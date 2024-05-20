@@ -42,6 +42,25 @@ def prepare_jobs(core_number, num_jobs, with_socket):
         manager = JobManager(python_script_path, parent_path, env_path, log_data_path, monitor_file_template, num_jobs, cpus_per_job, mem)
     manager.create_jobs()
     
+# def delete_files_in_directory(directory_path):
+#     directory_path = os.path.abspath(directory_path)
+#     # Check if the directory exists
+#     if not os.path.isdir(directory_path):
+#         print(f"The directory {directory_path} does not exist.", flush=True)
+#         return
+
+#     # Iterate over all files in the directory and remove them
+#     for filename in os.listdir(directory_path):
+#         file_path = os.path.join(directory_path, filename)
+#         try:
+#             if os.path.isfile(file_path) or os.path.islink(file_path):
+#                 os.unlink(file_path)
+#                 # print(f"Deleted {file_path}")
+#             else:
+#                 print(f"Skipped {file_path} (Not a file)", flush=True)
+#         except Exception as e:
+#             print(f"Failed to delete {file_path}. Reason: {e}", flush=True)
+
 def delete_files_in_directory(directory_path):
     directory_path = os.path.abspath(directory_path)
     # Check if the directory exists
@@ -49,18 +68,19 @@ def delete_files_in_directory(directory_path):
         print(f"The directory {directory_path} does not exist.", flush=True)
         return
 
-    # Iterate over all files in the directory and remove them
-    for filename in os.listdir(directory_path):
-        file_path = os.path.join(directory_path, filename)
+    # Iterate over all items in the directory
+    for item in os.listdir(directory_path):
+        item_path = os.path.join(directory_path, item)
         try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-                # print(f"Deleted {file_path}")
-            else:
-                print(f"Skipped {file_path} (Not a file)", flush=True)
+            if os.path.isfile(item_path) or os.path.islink(item_path):
+                os.unlink(item_path)  # Remove the file or link
+                # print(f"Deleted {item_path}")
+            elif os.path.isdir(item_path):
+                shutil.rmtree(item_path)  # Remove the directory and all its contents
+                # print(f"Deleted directory {item_path}")
         except Exception as e:
-            print(f"Failed to delete {file_path}. Reason: {e}", flush=True)
-
+            print(f"Failed to delete {item_path}. Reason: {e}", flush=True)
+            
 def copy_files_with_subdirectories(paths_to_copy, destination_folder):
     for source_path in paths_to_copy:
         # Get the last component of the source path
