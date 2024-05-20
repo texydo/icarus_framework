@@ -1,14 +1,9 @@
-
-Add zone selection of different countries
-Create continuous attack scenario (every t time same attack)
-
-Create dynamic rerouting in regards to how the routing protocl works
-Should allocate and if stuck should reroute according to new shortest paths
+add random seeded zone
+fix delete folder function
 
 
 
-Model training wise:
-Extract network matrix
-Train models without node information
+Create dynamic rerouting in regards to how the routing protocl works:
+    Should allocate and if stuck should reroute according to new shortest paths
 
 add a location to dump error runs

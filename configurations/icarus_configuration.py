@@ -60,7 +60,7 @@ CONFIG = {
         "beta": [0.1],
     },
     "atk_optim": {"strat": [BinSearchOptimStrat], "rate": [1.0]},
-    "zone_select": {"strat": [RandZoneStrat], "samples": [5000], "random_seed":[42]},
+    "zone_select": {"strat": [RandSeedZoneStrat], "samples": [5000], "random_seed":[42]},
     "zone_build": {"strat": [KclosestZoneStrat], "size": [6]},
     "zone_edges": {
         "strat": [ISLZoneStrat],
@@ -125,7 +125,7 @@ def generate_default_dict(
     atk_feas_beta=0.1,
     atk_optim_strat=BinSearchOptimStrat,
     atk_optim_rate=1.0,
-    zone_select_strat=RandZoneStrat,
+    zone_select_strat=RandSeedZoneStrat,
     zone_select_samples=5000,
     zone_random_seed=42,
     zone_build_strat=KclosestZoneStrat,
