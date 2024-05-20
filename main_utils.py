@@ -171,6 +171,12 @@ def update_time_intervals(config, interval_size_sec, interval_size_min):
     lsn_value["hrs"] = new_hrs
     lsn_value["mins"] = new_mins
     lsn_value["secs"] = new_secs
+
+def zone_random_seed_generator(config):
+    new_seed = random.randint(0, 2**32 - 1)
+    config["zone_select"]["random_seed"] = [new_seed]
+
+    
     
 def create_run_folder(result_dir, run_num):
     # Create the directory path

@@ -263,8 +263,10 @@ def main(config_init):
                 print(f"Run number {run_num} out of {number_of_runs}", flush=True)
                 single_start_time = time.time()
                 current_result_folder  = create_run_folder(result_dir, run_num)
-                if run_num != 0:
-                    update_time_intervals(config_sim, interval_size_sec, interval_size_min)    
+                if run_num == 0:
+                    zone_random_seed_generator(config_sim)
+                else:
+                    update_time_intervals(config_sim, interval_size_sec, interval_size_min)
                 sim = initialize_icarus(config_sim, core_number, run_jobs,num_jobs, run_with_socket, current_result_folder)
                 sim.compute_simulation()
                 print(f"Single run time took: {print_total_run_time_minutes(single_start_time):.2f} minutes", flush=True)
