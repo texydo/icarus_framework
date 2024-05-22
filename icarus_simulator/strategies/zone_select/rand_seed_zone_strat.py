@@ -13,7 +13,7 @@ class RandSeedZoneStrat(BaseZoneSelectStrat):
     def __init__(self, samples: int, random_seed: int, **kwargs):
         super().__init__()
         self.samples = samples
-        self.random_seed = random_seed
+        self.random_seed = random_seed[0]
         if len(kwargs) > 0:
             pass  # Appease the unused param inspection
 

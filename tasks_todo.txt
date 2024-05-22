@@ -1,7 +1,3 @@
-add random seeded zone
-fix delete folder function
-
-
 
 Create dynamic rerouting in regards to how the routing protocl works:
     Should allocate and if stuck should reroute according to new shortest paths
