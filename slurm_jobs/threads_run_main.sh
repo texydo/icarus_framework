@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=threads_main
-#SBATCH --cpus-per-task=250
+#SBATCH --cpus-per-task=120
 #SBATCH --mem=150G
 #SBATCH --output=/sise/home/roeeidan/icarus_framework/main_logs/job_main_output-%j.txt
 

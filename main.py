@@ -245,7 +245,7 @@ def main(config_init):
     original_stderr = sys.stderr
     
     inital_start = get_largest_numbered_folder(output_dir) + 1
-    number_runs = 200
+    number_runs = 999
     for conf_id in range(inital_start, inital_start + number_runs):
         print(f"current run out of {conf_id} {inital_start + number_runs}", flush=True)
         try:

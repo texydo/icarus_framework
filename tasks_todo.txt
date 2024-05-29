@@ -1,4 +1,8 @@
 
+Add a python file to lopad the data and read it 
+
+Create heat map view
+
 Create dynamic rerouting in regards to how the routing protocl works:
     Should allocate and if stuck should reroute according to new shortest paths
 
