@@ -6,7 +6,6 @@ from collections import defaultdict
 
 def find_and_process_data(base_path):
     base_path = os.path.abspath(base_path)
-    total_number_counts = defaultdict(int)
     counter = 0
     for root, dirs, files in os.walk(base_path):
         for dir_name in dirs:
@@ -18,6 +17,9 @@ def find_and_process_data(base_path):
                         counter +=1
                         if counter % 100 == 0:
                             print(f"Current step: {counter}")
+                        pickle_path = os.path.join(sub_dir_path, 'line_attack_grid_count.pkl')
+                        if os.path.exists(pickle_path):
+                            continue
                         loader = SimulationDataLoader(sub_dir_path)
                         loader.load_data("LAtk")
                         if "LAtk" in loader.data_cache:
@@ -31,13 +33,10 @@ def find_and_process_data(base_path):
                                 for ((num1, num2), _) in atkflowset:
                                     individual_counts[num1] += 1
                                     individual_counts[num2] += 1
-                                    total_number_counts[num1] += 1
-                                    total_number_counts[num2] += 1
                             # Save individual counts to pickle in the same directory
-                            pickle_path = os.path.join(sub_dir_path, 'line_attack_grid_count.pkl')
+                            
                             with open(pickle_path, 'wb') as file:
                                 pickle.dump(individual_counts, file)
-    return total_number_counts
 
 def save_data_as_pickle(data, file_path):
     with open(file_path, 'wb') as file:
@@ -46,6 +45,4 @@ def save_data_as_pickle(data, file_path):
 
 # Usage
 base_path = '/dt/shabtaia/DT_Satellite/icarus_data/ContinuousData'
-counts = find_and_process_data(base_path)
-pickle_path = '/dt/shabtaia/DT_Satellite/icarus_data/ContinuousData/study_data/total_line_attack_grid_count.pkl'
-save_data_as_pickle(counts, pickle_path)
+find_and_process_data(base_path)
