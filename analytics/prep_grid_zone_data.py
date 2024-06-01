@@ -16,14 +16,14 @@ def find_and_process_data(base_path):
                     if os.path.isdir(sub_dir_path):
                         counter +=1
                         if counter % 100 == 0:
-                            print(f"Current step: {counter}")
-                        pickle_path = os.path.join(sub_dir_path, 'line_attack_grid_count.pkl')
+                            print(f"Current step: {counter}", flush=True)
+                        pickle_path = os.path.join(sub_dir_path, 'zone_attack_grid_count.pkl')
                         if os.path.exists(pickle_path):
                             continue
                         loader = SimulationDataLoader(sub_dir_path)
-                        loader.load_data("LAtk")
-                        if "LAtk" in loader.data_cache:
-                            datas = loader.data_cache["LAtk"][0]
+                        loader.load_data("ZAtk")
+                        if "ZAtk" in loader.data_cache:
+                            datas = loader.data_cache["ZAtk"][0]
                             individual_counts = defaultdict(int)
                             for data in datas.values():
                                 if data is None:
@@ -41,7 +41,7 @@ def find_and_process_data(base_path):
 def save_data_as_pickle(data, file_path):
     with open(file_path, 'wb') as file:
         pickle.dump(data, file)
-    print(f"Data saved as pickle at: {file_path}")
+    print(f"Data saved as pickle at: {file_path}", flush=True)
 
 # Usage
 base_path = '/dt/shabtaia/DT_Satellite/icarus_data/ContinuousData'

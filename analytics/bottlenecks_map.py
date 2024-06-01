@@ -16,10 +16,10 @@ def draw_line_on_map(m, lon1, lat1, lon2, lat2):
     """Draw a line between two points on a given map."""
     x1, y1 = m(lon1, lat1)
     x2, y2 = m(lon2, lat2)
-    m.plot([x1, x2], [y1, y2], marker='o', markersize=5, linestyle='-', color='b')
+    m.plot([x1, x2], [y1, y2], marker='o', markersize=1.5, linestyle='-', color='r')
     plt.draw()
 
-def find_and_process_data(base_path, image_save_path):
+def find_and_process_data(base_path):
     base_path = os.path.abspath(base_path)
     map_obj = initialize_map()
 
@@ -30,23 +30,32 @@ def find_and_process_data(base_path, image_save_path):
                 for sub_dir_name in os.listdir(results_dir):
                     sub_dir_path = os.path.join(results_dir, sub_dir_name)
                     if os.path.isdir(sub_dir_path):
+                        image_save_path = os.path.join(sub_dir_path, 'bottleneck_map.png')
+                        if os.path.exists(image_save_path):
+                            print(f"Skipping {sub_dir_path} as bottleneck_map.png already exists.", flush=True)
+                            continue
+                        print(f"Processing: {sub_dir_path}", flush=True)
                         loader = SimulationDataLoader(sub_dir_path)
                         loader.load_data("ZAtk")
                         loader.load_data("LSN")
                         datas = loader.data_cache["ZAtk"][0]
                         geo_location_data = loader.data_cache["LSN"][0]
-                        for data in datas:
+                        
+                        map_obj = initialize_map()
+                        
+                        for data in datas.values():
+                            if data is None:
+                                continue
                             for (num1, num2) in data.bottlenecks:
                                 geo1 = geo_location_data.get(num1)
                                 geo2 = geo_location_data.get(num2)
                                 if geo1 and geo2:
                                     draw_line_on_map(map_obj, geo1.lon, geo1.lat, geo2.lon, geo2.lat)
-
-                        # Save the updated map after processing each subdirectory
+                                # Save the updated map after processing each subdirectory
                         plt.savefig(image_save_path)
-    plt.close()
+                        plt.close()
+                        print(f"Map saved at: {image_save_path}", flush=True)
 
 # Usage
 base_path = '/dt/shabtaia/DT_Satellite/icarus_data/ContinuousData'
-image_save_path = '/home/roeeidan/icarus_framework/analytics/map.png'
-find_and_process_data(base_path, image_save_path)
+find_and_process_data(base_path)

@@ -19,19 +19,19 @@ def find_and_process_data(base_path):
                         counter +=1
                         if counter % 5 == 0:
                             print(f"Current step: {counter}", flush=True)
-                            print(f"Average number of attackers per line: {all_atks_counter/number_atks}")
+                            print(f"Average number of bottlenecks per zone: {all_atks_counter/number_atks}")
                         loader = SimulationDataLoader(sub_dir_path)
-                        loader.load_data("LAtk")
-                        if "LAtk" in loader.data_cache:
-                            datas = loader.data_cache["LAtk"][0]
+                        loader.load_data("ZAtk")
+                        if "ZAtk" in loader.data_cache:
+                            datas = loader.data_cache["ZAtk"][0]
                             individual_counts = defaultdict(int)
                             for data in datas.values():
                                 if data is None:
                                     continue
-                                atkflowset = data.atkflowset
+                                atkflowset = data.bottlenecks
                                 all_atks_counter += len(atkflowset)
                                 number_atks +=1
-    print(f"Final Average number of attackers per line: {all_atks_counter/number_atks}")
+    print(f"Final Average number of bottlenecks per zone: {all_atks_counter/number_atks}")
 
 
 # Usage

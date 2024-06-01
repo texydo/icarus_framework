@@ -10,3 +10,6 @@ Training/
 slurm_jobs/temp_configs
 # Ignore all .pyc files
 *.pyc
+
+# Ignore all image files fow now
+analytics/*.png
