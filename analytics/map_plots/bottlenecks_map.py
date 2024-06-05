@@ -1,4 +1,9 @@
+import sys
 import os
+
+# Add the parent directory (analytics) to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from sim_data_loader import SimulationDataLoader
 from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt

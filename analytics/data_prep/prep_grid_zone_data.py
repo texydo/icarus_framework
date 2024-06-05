@@ -1,5 +1,11 @@
-from sim_data_loader import SimulationDataLoader
+
+import sys
 import os
+
+# Add the parent directory (analytics) to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from sim_data_loader import SimulationDataLoader
 from pathlib import Path
 import pickle
 from collections import defaultdict
@@ -17,13 +23,13 @@ def find_and_process_data(base_path):
                         counter +=1
                         if counter % 100 == 0:
                             print(f"Current step: {counter}", flush=True)
-                        pickle_path = os.path.join(sub_dir_path, 'line_attack_grid_count.pkl')
+                        pickle_path = os.path.join(sub_dir_path, 'zone_attack_grid_count.pkl')
                         if os.path.exists(pickle_path):
                             continue
                         loader = SimulationDataLoader(sub_dir_path)
-                        loader.load_data("LAtk")
-                        if "LAtk" in loader.data_cache:
-                            datas = loader.data_cache["LAtk"][0]
+                        loader.load_data("ZAtk")
+                        if "ZAtk" in loader.data_cache:
+                            datas = loader.data_cache["ZAtk"][0]
                             individual_counts = defaultdict(int)
                             for data in datas.values():
                                 if data is None:

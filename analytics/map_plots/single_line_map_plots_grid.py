@@ -1,10 +1,16 @@
+import sys
+import os
+
+# Add the parent directory (analytics) to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from sim_data_loader import SimulationDataLoader
 import pickle
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 
 # Load your data
-with open('/dt/shabtaia/DT_Satellite/icarus_data/ContinuousData/1/results/0/zone_attack_grid_count.pkl', 'rb') as f:
+with open('/dt/shabtaia/DT_Satellite/icarus_data/ContinuousData/15/results/10/line_attack_grid_count.pkl', 'rb') as f:
     importance_dict = pickle.load(f)
 
 
@@ -41,4 +47,4 @@ for point_id, importance in importance_dict.items():
 
 plt.title('Map of Points')
 plt.show()
-plt.savefig('/home/roeeidan/icarus_framework/analytics/zone_map_of_points.png', dpi=300)
+plt.savefig('/home/roeeidan/icarus_framework/analytics/line_map_of_points.png', dpi=300)
