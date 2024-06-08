@@ -1,8 +1,33 @@
+import sys
+import os
+
+# Add the parent directory (analytics) to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+
+
 from sim_data_loader import SimulationDataLoader
 import os
-from pathlib import Path
-import pickle
+
+
 import matplotlib.pyplot as plt
+
+def dict_normalizer(input_dict, divisor):
+    """
+    Divide all values in the dictionary by the given divisor, modifying the original dictionary in place.
+    
+    Args:
+    input_dict (dict): The original dictionary with numeric values.
+    divisor (int or float): The number to divide each value by.
+
+    Returns:
+    None
+    """
+    if divisor == 0:
+        raise ValueError("The divisor cannot be zero.")
+    
+    for key in input_dict:
+        input_dict[key] /= divisor
 
 def merge_integer_dictionaries(base_dict, new_dict):
     """
@@ -22,7 +47,7 @@ def merge_integer_dictionaries(base_dict, new_dict):
             base_dict[key] = value
 
 
-def plot_percentage_distribution(data_dict, filename):
+def plot_percentage_distribution(data_dict, filepath):
     """
     Plots the percentage distribution of dictionary values in descending order and saves the figure.
     
@@ -37,19 +62,21 @@ def plot_percentage_distribution(data_dict, filename):
     plt.figure(figsize=(10, 6))
     plt.bar(range(len(sorted_values)), sorted_values, color='skyblue')
     plt.ylabel('Percentage')
-    plt.title('Zone scenario Percentage Distribution appearance')
+    plt.title('Zone Scenario User Percentage Distribution appearance')
     plt.ylim(0, 1)
     
     # Save the plot to a file
     plt.tight_layout()
-    plt.savefig(filename)
+    plt.savefig(filepath)
     plt.close()
     
     
 def find_and_process_data(base_path):
     base_path = os.path.abspath(base_path)
     counter = 0
-    
+    total_attacks = 0
+    total_attack_dict = {}
+    file_path = "/home/roeeidan/icarus_framework/analytics/outputs/zone_distribution/distribution_user_precentage_appearance_zone.png"
     for root, dirs, files in os.walk(base_path):
         for dir_name in dirs:
             if dir_name == 'results':
@@ -58,12 +85,10 @@ def find_and_process_data(base_path):
                     sub_dir_path = os.path.join(results_dir, sub_dir_name)
                     if os.path.isdir(sub_dir_path):
                         counter +=1
-                        if counter % 5 == 0:
+                        if counter % 1 == 0:
                             print(f"Current step: {counter}", flush=True)
                         loader = SimulationDataLoader(sub_dir_path)
                         loader.load_data("ZAtk")
-                        total_attacks = 0
-                        total_attack_dict = {}
                         if "ZAtk" in loader.data_cache:
                             datas = loader.data_cache["ZAtk"][0]
                             for data in datas.values():
@@ -78,7 +103,11 @@ def find_and_process_data(base_path):
                                     if item[0][1] not in dict_show_up.keys():
                                         dict_show_up[item[0][0]] = 1
                                 merge_integer_dictionaries(total_attack_dict, dict_show_up)
-                        return
+                dict_normalizer(total_attack_dict,total_attacks)
+                
+                
+                plot_percentage_distribution(total_attack_dict,file_path)
+                return
                                 
                         
 
