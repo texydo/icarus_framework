@@ -87,7 +87,7 @@ class SimulatedScenarioPhase(BasePhase):
         filtered_and_sorted_zatk_objects = sorted((zatk for zatk in zone_attack_data.values() if zatk is not None),
                                                   key=lambda zatk: zatk.detectability,reverse=True)
         indexed_zatk_list = [[zatk, index] for index, zatk in enumerate(filtered_and_sorted_zatk_objects)]
-        samples = indexed_zatk_list[:1]
+        samples = indexed_zatk_list[:5]
         # for zatk in zone_attack_data.values():
         #     if zatk is None:
         #         continue

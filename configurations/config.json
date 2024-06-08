@@ -1,6 +1,6 @@
 {
     "run_jobs": false,
-    "core_number": 10,
+    "core_number": 250,
     "output_dir": "/dt/shabtaia/DT_Satellite/icarus_data/ContinuousData/",
     "num_jobs": 10,
     "run_with_socket": false,

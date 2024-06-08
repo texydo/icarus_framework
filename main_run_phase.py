@@ -256,7 +256,7 @@ def initialize_icarus(conf, core_number, run_jobs,num_jobs, run_server, result_d
         )
 
         sim = IcarusSimulator(
-            [lsn_ph, grid_ph, cov_ph, rout_ph, edge_ph, sim_traffic_ph], #simulate_scenario_ph], #, sim_traffic_ph, sim_attack_traffic_ph],
+            [lsn_ph, grid_ph, cov_ph, rout_ph, edge_ph, bw_ph, latk_ph, zatk_ph,simulate_scenario_ph], #, sim_traffic_ph, sim_attack_traffic_ph],
             result_dir,
         )
         return sim 
@@ -284,7 +284,7 @@ def main(config_init):
     original_stdout = sys.stdout
     original_stderr = sys.stderr
     
-    run_on_scenarios = get_ascending_order_folders(output_dir,5,4)
+    run_on_scenarios = get_ascending_order_folders(output_dir,3,0)
     
     for current_scenario in run_on_scenarios:
         scenario_path = os.path.join(output_dir, current_scenario)
@@ -292,7 +292,7 @@ def main(config_init):
         try:
             config_sim, number_of_runs, interval_size_sec, interval_size_min= load_config_files(scenario_path)
             clean_paths(paths_to_clean)
-            logger_name = os.path.join(scenario_path, "results", f"simulation_reg_traffic.log") #TODO change that it will have function
+            logger_name = os.path.join(scenario_path, "results", f"simulation_all_traffic.log") #TODO change that it will have function
             
             sys.stdout = Logger(logger_name)
             sys.stderr = sys.stdout
