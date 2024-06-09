@@ -76,7 +76,7 @@ def find_and_process_data(base_path):
     counter = 0
     total_attacks = 0
     total_attack_dict = {}
-    file_path = "/home/roeeidan/icarus_framework/analytics/outputs/line_distribution/distribution_user_precentage_appearance_line.png"
+    file_path = "/home/roeeidan/icarus_framework/analytics/outputs/line_dstribution/distribution_user_precentage_appearance_line.png"
     for root, dirs, files in os.walk(base_path):
         for dir_name in dirs:
             if dir_name == 'results':
