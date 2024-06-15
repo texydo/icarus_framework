@@ -8,4 +8,4 @@ python_script_directory="/home/roeeidan/icarus_framework"
 
 # Change directory to the specified directory
 cd "$python_script_directory" || exit
-/home/roeeidan/.conda/envs/icarus/bin/python /home/roeeidan/icarus_framework/main_run_phase.py
+/home/roeeidan/.conda/envs/icarus/bin/python /home/roeeidan/icarus_framework/main_run_long_scenario.py
