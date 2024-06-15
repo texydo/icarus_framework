@@ -3,49 +3,57 @@ import os
 from pathlib import Path
 import pickle
 import matplotlib.pyplot as plt
+from mpl_toolkits.basemap import Basemap
+import random
+import seaborn as sns
 
-def merge_integer_dictionaries(base_dict, new_dict):
-    """
-    Merge new_dict into base_dict. If a key exists in both, add the values.
-    
-    Args:
-    base_dict (dict): The original dictionary with integer keys and values.
-    new_dict (dict): The dictionary to merge into the original with integer keys and values.
+def plot_bar_number_of_attacks(numbers):
+    plt.bar(range(len(numbers)), numbers, color='b')
 
-    Returns:
-    dict: The updated dictionary.
-    """
-    for key, value in new_dict.items():
-        if key in base_dict:
-            base_dict[key] += value
-        else:
-            base_dict[key] = value
+    # Add a title and labels
+    plt.title('Bar Plot of Numbers with Index as X-axis')
+    plt.xlabel('Index')
+    plt.ylabel('Value')
 
-
-def plot_percentage_distribution(data_dict, filename):
-    """
-    Plots the percentage distribution of dictionary values in descending order and saves the figure.
-    
-    Args:
-    data_dict (dict): Dictionary with keys and percentage values (between 0 and 1).
-    filename (str): The filename to save the plot.
-    """
-    # Sort the values in descending order
-    sorted_values = sorted(data_dict.values(), reverse=True)
-    
-    # Create the bar plot
-    plt.figure(figsize=(10, 6))
-    plt.bar(range(len(sorted_values)), sorted_values, color='skyblue')
-    plt.ylabel('Percentage')
-    plt.title('Zone scenario Percentage Distribution appearance')
-    plt.ylim(0, 1)
-    
     # Save the plot to a file
-    plt.tight_layout()
-    plt.savefig(filename)
+    plt.savefig('bar_plot.png')
+
+    # Optionally, close the plot to free memory
     plt.close()
     
-    
+def plot_attack_data(attack_data, output_dir='plots'):
+    # Ensure the output directory exists
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Calculate the number of attacks each point has appeared in
+    attack_counts = {point: len(snapshots) for point, snapshots in attack_data.items()}
+
+    # Sort attack counts in descending order
+    sorted_points = sorted(attack_counts, key=attack_counts.get, reverse=True)
+    sorted_attack_counts = [attack_counts[point] for point in sorted_points]
+
+    # Plot 1: Descending order of attacks per point
+    plt.figure(figsize=(12, 6))
+    plt.bar(range(len(sorted_points)), sorted_attack_counts)
+    plt.xlabel('Points (in descending order of attacks)')
+    plt.ylabel('Number of Attacks')
+    plt.title('Number of Attacks per Point in Descending Order')
+    plt.savefig(os.path.join(output_dir, 'attacks_per_point.png'))
+    plt.close()
+
+    # Prepare data for heatmap plot
+    snapshot_range = 18  # 0 to 18
+    points = sorted(attack_data.keys())
+    presence_matrix = [[1 if snapshot in attack_data[point] else 0 for point in points] for snapshot in range(snapshot_range)]
+
+    # Plot 2: Presence of Points in Each Snapshot
+    plt.figure(figsize=(12, 6))
+    sns.heatmap(presence_matrix, xticklabels=False, yticklabels=range(snapshot_range), cmap='Blues', cbar=False)
+    plt.xlabel('Points')
+    plt.ylabel('Snapshot Number')
+    plt.title('Presence of Points in Each Snapshot')
+    plt.savefig(os.path.join(output_dir, 'presence_in_snapshots.png'))
+    plt.close()
 def find_and_process_data(base_path):
     base_path = os.path.abspath(base_path)
     counter = 0
@@ -54,6 +62,12 @@ def find_and_process_data(base_path):
         for dir_name in dirs:
             if dir_name == 'results':
                 results_dir = os.path.join(root, dir_name)
+                key = ((717, 712, 723, 713, 722, 718), (1361, 1379, 1344, 1192, 1362, 1191)) # ITAL INDIA
+                key2 = ((3061, 3080, 3043, 3060, 3062, 3042), (3282, 3281, 3299, 3266, 3283, 3265)) # CAlifornia south mexico
+                key3 = ((1442, 1441, 3873, 1421, 1420, 3874), (3281, 3298, 3265, 3280, 3282, 3264)) # CALIFORNIA BRITIAN/Franch
+                list_keys = [key,key2,key3]
+                main_dict = {key: {} for key in list_keys}
+                num_of_atks = {key: [] for key in list_keys}
                 for sub_dir_name in os.listdir(results_dir):
                     sub_dir_path = os.path.join(results_dir, sub_dir_name)
                     if os.path.isdir(sub_dir_path):
@@ -61,27 +75,38 @@ def find_and_process_data(base_path):
                         if counter % 5 == 0:
                             print(f"Current step: {counter}", flush=True)
                         loader = SimulationDataLoader(sub_dir_path)
-                        loader.load_data("ZAtk")
+                        # loader.load_data("Grid")
+                        loader.load_data("ZAtkS")
+                        # grid_pos = loader.data_cache["Grid"][0]
+                        # key_list.append(compute(grid_pos,42))
                         total_attacks = 0
                         total_attack_dict = {}
-                        if "ZAtk" in loader.data_cache:
-                            datas = loader.data_cache["ZAtk"][0]
-                            for data in datas.values():
-                                if data is None:
-                                    continue
-                                atkflowset = data.atkflowset
-                                dict_show_up = {}
-                                total_attacks += 1
-                                for item in atkflowset:
-                                    if item[0][0] not in dict_show_up.keys():
-                                        dict_show_up[item[0][0]] = 1
-                                    if item[0][1] not in dict_show_up.keys():
-                                        dict_show_up[item[0][0]] = 1
-                                merge_integer_dictionaries(total_attack_dict, dict_show_up)
-                        return
+                        attack_datas = loader.data_cache["ZAtkS"][0]
+                        # grid_datas = loader.data_cache["Grid"][0] 
+                        for k in list_keys:
+                            if k not in attack_datas:
+                                continue
+                            data = attack_datas[k]
+                            atkflowset = data.atkflowset
+                            numbers_set = list({num for (num1, num2), _ in atkflowset for num in (num1, num2)})
+                            num_of_atks[k].append(len(numbers_set))
+                            for num in numbers_set:
+                                if num in main_dict[k]:
+                                    main_dict[k][num].append(int(sub_dir_name))
+                                else:
+                                    main_dict[k][num] = [int(sub_dir_name)]
+                for keyp, list_num in num_of_atks.items():
+                    plot_bar_number_of_attacks(list_num)
+                    print()
+                # for keyp, dict in main_dict.items():
+                #     plot_attack_data(dict)
+                #     print()
+                return #todo add how much attack
                                 
                         
 
 # Usage
 base_path = '/dt/shabtaia/DT_Satellite/icarus_data/ContinuousData'
 find_and_process_data(base_path)
+
+

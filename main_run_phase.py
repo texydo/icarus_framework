@@ -207,6 +207,7 @@ def initialize_icarus(conf, core_number, run_jobs,num_jobs, run_server, result_d
             zatk_out=ZONE_ATK_DATA,
         )
         
+        
         sim_traffic_ph = SimulatedTrafficPhase(
             read_persist=True,
             persist=True,
@@ -254,9 +255,31 @@ def initialize_icarus(conf, core_number, run_jobs,num_jobs, run_server, result_d
             zattack_in=ZONE_ATK_DATA,
             scenario_out= SCENARIO_SIMULATED_DATA,
         )
+        zaths_ph = ZoneAttackSpecificPhase(read_persist=True,
+            persist=True,
+            num_jobs=num_jobs,
+            num_procs=core_number,
+            run_server = run_server,
+            num_batches=4,
+            run_jobs=run_jobs,
+            geo_constr_strat=get_strat("atk_constr", conf),
+            zone_select_strat=get_strat("zone_select", conf),
+            zone_build_strat=get_strat("zone_build", conf),
+            zone_edges_strat=get_strat("zone_edges", conf),
+            zone_bneck_strat=get_strat("zone_bneck", conf),
+            atk_filter_strat=get_strat("atk_filt", conf),
+            atk_feas_strat=get_strat("atk_feas", conf),
+            atk_optim_strat=get_strat("atk_optim", conf),
+            grid_in=GRID_POS,
+            paths_in=PATH_DATA,
+            edges_in=EDGE_DATA,
+            bw_in=BW_DATA,
+            atk_in=ATK_DATA,
+            zatkp_out=ZONE_ATK_SPECIFIC_DATA,)
+        
 
         sim = IcarusSimulator(
-            [lsn_ph, grid_ph, cov_ph, rout_ph, edge_ph, bw_ph, latk_ph, zatk_ph,simulate_scenario_ph], #, sim_traffic_ph, sim_attack_traffic_ph],
+            [lsn_ph, grid_ph, cov_ph, rout_ph, edge_ph, bw_ph, latk_ph, zaths_ph], #, sim_traffic_ph, sim_attack_traffic_ph],
             result_dir,
         )
         return sim 
@@ -284,7 +307,7 @@ def main(config_init):
     original_stdout = sys.stdout
     original_stderr = sys.stderr
     
-    run_on_scenarios = get_ascending_order_folders(output_dir,3,0)
+    run_on_scenarios = get_ascending_order_folders(output_dir,1,0)
     
     for current_scenario in run_on_scenarios:
         scenario_path = os.path.join(output_dir, current_scenario)
@@ -292,7 +315,7 @@ def main(config_init):
         try:
             config_sim, number_of_runs, interval_size_sec, interval_size_min= load_config_files(scenario_path)
             clean_paths(paths_to_clean)
-            logger_name = os.path.join(scenario_path, "results", f"simulation_all_traffic.log") #TODO change that it will have function
+            logger_name = os.path.join(scenario_path, "results", f"zone_attack_specific.log") #TODO change that it will have function
             
             sys.stdout = Logger(logger_name)
             sys.stderr = sys.stdout
@@ -324,7 +347,8 @@ def main(config_init):
             sys.stdout.log.close()  # Close the log file associated with the logger
             sys.stdout = original_stdout
             sys.stderr = original_stderr
-        os.remove(logger_name) 
+        os.remove(logger_name)
+        break
 
 # Execute on main
 if __name__ == "__main__":
