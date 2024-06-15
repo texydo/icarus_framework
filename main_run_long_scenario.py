@@ -16,26 +16,16 @@ After adjusting the class constants, execute the file to create the plots and th
 Due to the computational burden, it is advised to always run this library on a heavy-multicore machine.
 """
 import os
-import shutil
-import pickle
-from statistics import mean
-import tempfile
-import random
-import string
 import time
 
 from icarus_simulator.icarus_simulator import IcarusSimulator
 from icarus_simulator.default_properties import *
 from icarus_simulator.phases import *
-from sat_plotter import GeoPlotBuilder
-from sat_plotter.stat_plot_builder import StatPlotBuilder
 
 from configurations.icarus_configuration import CONFIG, parse_config, get_strat, get_random_dict
 
 import sys
 import traceback
-
-from multi_job_managment.job_manager import JobManager, JobManagerSocket
 from multi_job_managment.cancel_monitor_jobs import clear_jobs
 from multi_job_managment.logger import Logger
 from main_utils import *
@@ -47,37 +37,9 @@ OUTPUT_DIR = "outputs"
 LOGS_DIR = "logs"
 TEMP_DATA = "icarus_simulator/temp_data"
     
-def prepare_system(logs_dir, paths_to_copy, core_number,num_jobs, with_socket):
-    clear_jobs()
-    delete_files_in_directory(logs_dir)
-    clean_paths(paths_to_copy)
-    prepare_jobs(core_number, num_jobs, with_socket)
-
-def get_ascending_order_folders(directory, n=1, m=1):
-    # List all entries in the directory
-    entries = os.listdir(directory)
     
-    # Filter out non-directory entries and keep only numerical directories
-    numerical_folders = [entry for entry in entries if os.path.isdir(os.path.join(directory, entry)) and entry.isdigit()]
-    
-    # Sort the directories in ascending numerical order
-    sorted_folders = sorted(numerical_folders, key=int)
-    
-    # Filter folders based on the condition folder_number % n == m
-    filtered_folders = [folder for folder in sorted_folders if int(folder) % n == m]
-    
-    return filtered_folders
-
-def load_config_files(folder_path):
-    init_pkl_file_path = os.path.join(folder_path, 'config_init.pkl')
-        
-    # Check if the file exists
-    if os.path.exists(init_pkl_file_path):
-        with open(init_pkl_file_path, 'rb') as pkl_file:
-            init_config_data = pickle.load(pkl_file)
-    
-    sim_pkl_file_path = os.path.join(folder_path, 'config_sim.pkl')
-        
+def load_config_sim(folder_path):
+    sim_pkl_file_path = os.path.join(folder_path, 'config_sim.pkl') 
     # Check if the file exists
     if os.path.exists(sim_pkl_file_path):
         with open(sim_pkl_file_path, 'rb') as pkl_file:
@@ -85,13 +47,14 @@ def load_config_files(folder_path):
     sim_config_data["lsn"]["hrs"] = 0
     sim_config_data["lsn"]["mins"] = 0
     sim_config_data["lsn"]["secs"] = 0
-    
-    number_of_runs = init_config_data["number_of_runs"]
-    interval_size_sec = init_config_data["interval_size_sec"]
-    interval_size_min = init_config_data["interval_size_min"]
-    return sim_config_data, number_of_runs, interval_size_sec, interval_size_min
-
     return sim_config_data
+    
+def prepare_system(logs_dir, paths_to_copy, core_number,num_jobs, with_socket):
+    clear_jobs()
+    delete_files_in_directory(logs_dir)
+    clean_paths(paths_to_copy)
+    prepare_jobs(core_number, num_jobs, with_socket)
+
 def initialize_icarus(conf, core_number, run_jobs,num_jobs, run_server, result_dir):
     # SIMULATION: phase definition and final computation
         lsn_ph = LSNPhase(
@@ -208,7 +171,6 @@ def initialize_icarus(conf, core_number, run_jobs,num_jobs, run_server, result_d
             zatk_out=ZONE_ATK_DATA,
         )
         
-        
         sim_traffic_ph = SimulatedTrafficPhase(
             read_persist=True,
             persist=True,
@@ -256,36 +218,11 @@ def initialize_icarus(conf, core_number, run_jobs,num_jobs, run_server, result_d
             zattack_in=ZONE_ATK_DATA,
             scenario_out= SCENARIO_SIMULATED_DATA,
         )
-        zaths_ph = ZoneAttackSpecificPhase(read_persist=True,
-            persist=True,
-            num_jobs=num_jobs,
-            num_procs=core_number,
-            run_server = run_server,
-            num_batches=4,
-            run_jobs=run_jobs,
-            geo_constr_strat=get_strat("atk_constr", conf),
-            zone_select_strat=get_strat("zone_select", conf),
-            zone_build_strat=get_strat("zone_build", conf),
-            zone_edges_strat=get_strat("zone_edges", conf),
-            zone_bneck_strat=get_strat("zone_bneck", conf),
-            atk_filter_strat=get_strat("atk_filt", conf),
-            atk_feas_strat=get_strat("atk_feas", conf),
-            atk_optim_strat=get_strat("atk_optim", conf),
-            grid_in=GRID_POS,
-            paths_in=PATH_DATA,
-            edges_in=EDGE_DATA,
-            bw_in=BW_DATA,
-            atk_in=ATK_DATA,
-            zatkp_out=ZONE_ATK_SPECIFIC_DATA,)
-        
-
         sim = IcarusSimulator(
-            [lsn_ph, grid_ph, cov_ph, rout_ph, edge_ph, bw_ph, latk_ph, zaths_ph], #, sim_traffic_ph, sim_attack_traffic_ph],
-            result_dir,
+            [lsn_ph, grid_ph, cov_ph, rout_ph, edge_ph, bw_ph], result_dir,
         )
         return sim 
-
-
+    
 def main(config_init):
     config_init_values = extract_config_init(config_init)
     run_jobs, core_number, output_dir, num_jobs, run_with_socket = config_init_values[:5]
@@ -308,37 +245,37 @@ def main(config_init):
     original_stdout = sys.stdout
     original_stderr = sys.stderr
     
-    run_on_scenarios = get_ascending_order_folders(output_dir,1,0)
-    
-    for current_scenario in run_on_scenarios:
-        scenario_path = os.path.join(output_dir, current_scenario)
-        print(f"current run out of {current_scenario} / {run_on_scenarios[-1]}", flush=True)
+    folder_num = count_direct_subfolders(output_dir)
+    total_runs = 999
+    while folder_num <= total_runs:
+        folder_num = count_direct_subfolders(output_dir)
+        print(f"current run out of {folder_num} {total_runs}", flush=True)
         try:
-            config_sim, number_of_runs, interval_size_sec, interval_size_min= load_config_files(scenario_path)
             clean_paths(paths_to_clean)
-            logger_name = os.path.join(scenario_path, "results", f"zone_attack_specific.log") #TODO change that it will have function
             
+            # TODO load a single config
+            config_sim = load_config_sim(output_dir) #TODO change
+            
+            current_out_dir, time_min, time_sec = create_next_interval_folder(output_dir, interval_size_min, interval_size_sec)
+            
+            set_time_intervals(config_sim, time_min, time_sec)
+            
+            logger_name = os.path.join(current_out_dir, f"simulation_{time_min}_{time_sec}.log")
             sys.stdout = Logger(logger_name)
             sys.stderr = sys.stdout
             print_lines(4)
+            print(f"Configuration number {folder_num} out of {total_runs}",flush=True)  # 0-based
             
             total_start_time = time.time()
-            for run_num in range(number_of_runs):
-                currect_step_dict = os.path.join(scenario_path,"results",str(run_num))
-                print(f"Run number {run_num} out of {number_of_runs}", flush=True)
-                single_start_time = time.time()
-                if run_num != 0:
-                    update_time_intervals(config_sim, interval_size_sec, interval_size_min)
-                sim = initialize_icarus(config_sim, core_number, run_jobs,num_jobs, run_with_socket, currect_step_dict)
-                sim.compute_simulation()
-                print(f"Single run time took: {print_total_run_time_minutes(single_start_time):.2f} minutes", flush=True)
-                print_lines(1)
-            
+            sim = initialize_icarus(config_sim, core_number, run_jobs,num_jobs, run_with_socket, current_out_dir)
+            sim.compute_simulation()
+            print_lines(1)
+                
             print(f"Simulation run time took: {print_total_run_time_minutes(total_start_time):.2f} minutes", flush=True)
             sys.stdout.log.close()  # Close the log file associated with the logger
             sys.stdout = original_stdout
             sys.stderr = original_stderr
-            
+            copy_configs(current_out_dir, config_sim, config_init)
         except Exception as e:
             print(f"There was an error:", flush=True)
             print(f"{e}", flush=True)
@@ -348,9 +285,41 @@ def main(config_init):
             sys.stdout.log.close()  # Close the log file associated with the logger
             sys.stdout = original_stdout
             sys.stderr = original_stderr
-        os.remove(logger_name)
-        break
+        os.remove(logger_name) 
+                  
+def get_results_folders(main_folder, num):
+    folders = [os.path.join(main_folder, folder) for folder in os.listdir(main_folder) if os.path.isdir(os.path.join(main_folder, folder))]
+    folders.sort(key=lambda x: int(os.path.basename(x)))
+    filtered_folders = []
+    for folder in folders:
+        folder_name = os.path.basename(folder)
+        # if int(folder_name) % 5 == num:
+        results_folder = os.path.join(folder, 'results')
+        if os.path.exists(results_folder):
+            filtered_folders.append(results_folder)
+    return filtered_folders
 
+def create_training_data(run_jobs, core_number, output_dir, num_jobs, run_with_socket):
+    output_dir = output_dir
+    data_folders = get_results_folders(output_dir, 4)
+    core_number = core_number
+    for folder in data_folders:
+        try:
+            conf = parse_config(get_random_dict())[0]
+            result_dir = folder
+            print(
+                "---------------------------------------------------------------------------------"
+            ,flush=True)
+            print(f"Configuration number {folder} out of {len(data_folders)}",flush=True)  # 0-based
+            
+            sim = initialize_icarus(conf, core_number, run_jobs,num_jobs, run_with_socket, result_dir)
+            sim.compute_simulation()
+        except Exception as e:
+            # TODO add something to do when it failes
+            print(f"There was an error:", flush=True)
+            print(f"{e}", flush=True)
+            print(f"error end", flush=True)
+            
 # Execute on main
 if __name__ == "__main__":
     if len(sys.argv) == 1:

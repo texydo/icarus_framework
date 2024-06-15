@@ -192,6 +192,18 @@ def update_time_intervals(config, interval_size_sec, interval_size_min):
     lsn_value["mins"] = new_mins
     lsn_value["secs"] = new_secs
 
+def set_time_intervals(config, interval_size_sec, interval_size_min):
+    lsn_value = config["lsn"]
+    total_secs = interval_size_sec + interval_size_min * 60
+    new_hrs = total_secs // 3600
+    new_mins = (total_secs % 3600) // 60
+    new_secs = total_secs % 60
+
+    # Update time components
+    lsn_value["hrs"] = new_hrs
+    lsn_value["mins"] = new_mins
+    lsn_value["secs"] = new_secs
+    
 def zone_random_seed_generator(config):
     new_seed = random.randint(0, 2**32 - 1)
     config["zone_select"]["random_seed"] = [new_seed]
@@ -219,3 +231,73 @@ def print_lines(num_lines):
         print(
                 "---------------------------------------------------------------------------------"
             ,flush=True)
+
+def count_direct_subfolders(dir_path):
+    """
+    Count the number of direct subfolders in the given directory.
+
+    Args:
+    dir_path (str): The path to the directory.
+
+    Returns:
+    int: The number of direct subfolders.
+    """
+    if not os.path.isdir(dir_path):
+        raise ValueError(f"The path {dir_path} is not a valid directory.")
+    
+    subfolders = [name for name in os.listdir(dir_path) if os.path.isdir(os.path.join(dir_path, name))]
+    return len(subfolders)
+
+def create_next_interval_folder(base_path, min_interval, sec_interval):
+    def parse_folder_name(folder_name):
+        """Parse folder name to get the interval in seconds as an integer."""
+        try:
+            return int(folder_name)
+        except ValueError:
+            return None
+
+    def calculate_step(min_interval, sec_interval):
+        """Calculate the step size in seconds."""
+        return min_interval * 60 + sec_interval
+
+    def convert_seconds_to_min_sec(seconds):
+        """Convert seconds to minutes and seconds."""
+        minutes = seconds // 60
+        remaining_seconds = seconds % 60
+        return minutes, remaining_seconds
+
+    # Calculate the step size in seconds
+    step_size = calculate_step(min_interval, sec_interval)
+
+    # Get list of all folders in the base path
+    folders = [f for f in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, f))]
+    
+    # Parse folders and find the latest interval in seconds
+    latest_interval = -1
+    for folder in folders:
+        interval = parse_folder_name(folder)
+        if interval is not None and interval > latest_interval:
+            latest_interval = interval
+
+    # Calculate the next interval
+    next_interval = latest_interval + step_size if latest_interval != -1 else 0
+    next_folder_name = str(next_interval)
+    next_folder_path = os.path.join(base_path, next_folder_name)
+
+    # Create the next folder
+    os.makedirs(next_folder_path, exist_ok=True)
+    
+    # Convert the next interval to minutes and seconds
+    minutes, seconds = convert_seconds_to_min_sec(next_interval)
+
+    return next_folder_path, minutes, seconds
+
+
+def copy_configs(copy_dir, config_sim, config_init):
+    output_dir = os.path.abspath(copy_dir)
+    file_path = os.path.join(output_dir, "config_sim.pkl")
+    with open(file_path, 'wb') as file:
+        pickle.dump(config_sim, file)
+    file_path = os.path.join(output_dir, "config_init.pkl")
+    with open(file_path, 'wb') as file:
+        pickle.dump(config_init, file)
