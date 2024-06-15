@@ -91,7 +91,7 @@ def load_config_files(folder_path):
     interval_size_min = init_config_data["interval_size_min"]
     return sim_config_data, number_of_runs, interval_size_sec, interval_size_min
 
-    return sim_config_data
+
 def initialize_icarus(conf, core_number, run_jobs,num_jobs, run_server, result_dir):
     # SIMULATION: phase definition and final computation
         lsn_ph = LSNPhase(
