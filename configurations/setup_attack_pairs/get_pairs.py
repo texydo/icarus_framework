@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import random
 from mpl_toolkits.basemap import Basemap
 import numpy as np
-
+import random
 
 def normalize_weights(cities_df):
     # Convert population and GDP columns to numerical values
@@ -28,7 +28,8 @@ def normalize_weights(cities_df):
 # Function to select a random city based on different normalized weights
 def select_random_city(weighted_df):
     # Randomly choose one of the three cases
-    choice = np.random.choice(['gdp'])
+    
+    # choice = np.random.choice(['gdp'])
     choice = np.random.choice(['combined','population','gdp'])
     if choice == 'combined':
         return weighted_df.sample(weights=weighted_df['Normalized_combined_weight'], replace=True).iloc[0]
@@ -124,7 +125,7 @@ cities_df = pd.read_csv(file_path)
 cities_df = normalize_weights(cities_df)
 
 # Generate 10 pairs of cities with a minimum distance of 1000 km
-num_pairs = 2500
+num_pairs = 3500
 min_distance_km = 1000
 city_pairs = weighted_city_pairs(cities_df, num_pairs, min_distance_km)
 
