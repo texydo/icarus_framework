@@ -4,6 +4,7 @@ from pathlib import Path
 import pickle
 from collections import defaultdict
 
+
 def find_and_process_data(base_path):
     base_path = os.path.abspath(base_path)
     counter = 0
@@ -21,6 +22,8 @@ def find_and_process_data(base_path):
                             print(f"Current step: {counter}", flush=True)
                             print(f"Average number of attackers per line: {all_atks_counter/number_atks}")
                         loader = SimulationDataLoader(sub_dir_path)
+                        loader.load_data("Grid")
+                        datas = loader.data_cache["Grid"][0]
                         loader.load_data("LAtk")
                         if "LAtk" in loader.data_cache:
                             datas = loader.data_cache["LAtk"][0]

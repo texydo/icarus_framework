@@ -246,7 +246,7 @@ def main(config_init):
     original_stderr = sys.stderr
     
     folder_num = count_direct_subfolders(output_dir)
-    total_runs = 999
+    total_runs = 5000
     while folder_num <= total_runs:
         folder_num = count_direct_subfolders(output_dir)
         print(f"current run out of {folder_num} {total_runs}", flush=True)
