@@ -253,8 +253,7 @@ def main(config_init):
         try:
             clean_paths(paths_to_clean)
             
-            # TODO load a single config
-            config_sim = load_config_sim(output_dir) #TODO change
+            config_sim = load_config_sim(output_dir)
             
             current_out_dir, time_min, time_sec = create_next_interval_folder(output_dir, interval_size_min, interval_size_sec)
             
