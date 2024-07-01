@@ -22,8 +22,10 @@ def find_and_process_data(base_path):
                             print(f"Current step: {counter}", flush=True)
                             print(f"Average number of attackers per line: {all_atks_counter/number_atks}")
                         loader = SimulationDataLoader(sub_dir_path)
-                        loader.load_data("Grid")
-                        datas = loader.data_cache["Grid"][0]
+                        loader.load_data("ZoneBottle")
+                        datas = loader.data_cache["ZoneBottle"][0]
+                        loader.load_data("Routes")
+                        datas = loader.data_cache["Routes"][0]
                         loader.load_data("LAtk")
                         if "LAtk" in loader.data_cache:
                             datas = loader.data_cache["LAtk"][0]
@@ -38,5 +40,5 @@ def find_and_process_data(base_path):
 
 
 # Usage
-base_path = '/dt/shabtaia/DT_Satellite/icarus_data/ContinuousData'
+base_path = '/dt/shabtaia/DT_Satellite/icarus_data/sim_intervals_30s/55770/'
 find_and_process_data(base_path)

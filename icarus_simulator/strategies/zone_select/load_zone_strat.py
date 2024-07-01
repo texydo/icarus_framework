@@ -43,7 +43,7 @@ class LoadZoneStrat(BaseZoneSelectStrat):
 
     @property
     def param_description(self) -> str:
-        return f"{self.centers}"
+        return None
 
     def compute(self, grid_pos: GridPos) -> List[Tuple[int, int]]:
         # Load the CSV file

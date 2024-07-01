@@ -130,6 +130,11 @@ class ZoneAttackInfo(AttackInfo):
     bottlenecks: List[Edge]
     distance: float
 
-
+@dataclass
+class ZoneBottleNeckInfo():
+    cross_zone_paths: List[Path]
+    bottlenecks: List[List[Edge]]
+    GridStartAppearanceCounter : Dict[int,int]
+    
 ZoneAttackData = Dict[Tuple[TupleZone, TupleZone], Optional[ZoneAttackInfo]]
 TrafficData = Dict[List[PathIdCost], BwData]

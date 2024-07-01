@@ -30,7 +30,8 @@ class SimulationDataLoader:
             "Bw": "Bw.pkl.bz2",
             "Grid": "Grid.pkl.bz2",
             "Edges": "Edges.pkl.bz2",
-            "ZAtkS":"ZAtkS.pkl.bz2"
+            "ZAtkS":"ZAtkS.pkl.bz2",
+            "ZoneBottle":"ZoneBottlePhase.pkl.bz2",
         }
         
         # Check if the data_type is valid
